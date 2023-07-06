@@ -60,5 +60,8 @@ def main():
         print('Play again?')
         match str(input())[0].casefold():
             case 'y': continue
-            case 'n': exit()
-main()
+            case 'n': 
+                print('Exiting game.')
+                break
+if __name__ == '__main__':
+    main()

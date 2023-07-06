@@ -64,4 +64,5 @@ def main():
     create_window()
 
     print('Finished!')
-main()
+if __name__ == '__main__':
+    main()
