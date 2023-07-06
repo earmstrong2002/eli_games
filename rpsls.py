@@ -28,4 +28,6 @@ def main():
     
     print(f'Player move: {player_move}')
     print(f'Computer\'s move: {com_move}')
+    
+    #TODO determine victor
 main()
