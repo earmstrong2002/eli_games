@@ -1,5 +1,13 @@
 import random as rand
 
+MOVE_LIST = [
+            'rock',
+            'paper',
+            'scissors',
+            'lizard',
+            'spock'
+        ]
+
 class Move:
     def __init__(self, beats):
         self.beats = beats
@@ -13,7 +21,12 @@ class Move:
         
 def get_player_move():
     print("Enter your move: ", end='')
-    return(str(input()))
+    while True:
+        user_input = str(input())
+        if user_input.casefold() in MOVE_LIST:
+            return user_input.casefold()
+        else:
+            print('Invalid move. Try again:', end='')
         
 def main():
     rock = Move(['scissors', 'lizard'])
@@ -26,22 +39,15 @@ def main():
     com_wins = 0
     
     while True:  
-        move_list = [
-            'rock',
-            'paper',
-            'scissors',
-            'lizard',
-            'spock'
-        ]
         
         player_move = get_player_move()
-        com_move = rand.choice(move_list)
+        com_move = rand.choice(MOVE_LIST)
         
         print(f'Player move: {player_move}')
         print(f'Computer\'s move: {com_move}')
         
         # Determine victor
-        match player_move[1].casefold():
+        match player_move[1]:
             case 'o': victor = rock.evaluate_victor(com_move)
             case 'a': victor = paper.evaluate_victor(com_move)
             case 'c': victor = scissors.evaluate_victor(com_move)
@@ -57,11 +63,19 @@ def main():
         print(f'{victor} wins! Current score: Player: {player_wins}, Computer: {com_wins}')
         
         # Ask if player would like to play again
-        print('Play again?')
-        match str(input())[0].casefold():
-            case 'y': continue
-            case 'n': 
-                print('Exiting game.')
-                break
+        leave = False
+        while True:
+            print('Play again?')
+            match str(input())[0].casefold():
+                case 'y': break
+                case 'n': 
+                    print('Exiting game.')
+                    leave = True
+                    break
+                case _:
+                    print('Invalid input. Try again.')
+            
+        if leave == True:
+            break
 if __name__ == '__main__':
     main()
