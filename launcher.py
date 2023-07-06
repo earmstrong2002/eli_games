@@ -12,11 +12,13 @@ def create_window():
     # Configure grid. REMEMBER TO UPDATE WHEN YOU ADD A NEW GAME
     top.columnconfigure(
         [0, 1],
-        weight=1
+        weight=1,
+        minsize=100
     )
     top.rowconfigure(
-        [0, 1],
-        weight=1
+        0,
+        weight=1,
+        minsize=100
     )
     
     # Create the buttons that launch each game.
