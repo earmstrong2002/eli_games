@@ -3,101 +3,100 @@ import time
 import tkinter
 import PIL
 
-MOVE_LIST = [
-            'rock',
-            'paper',
-            'scissors',
-            'lizard',
-            'spock'
-        ]
+SPEED = 0.1
 
 class Move:
-    def __init__(self, beats, name):
+    def __init__(self, beats, title):
         self.beats = beats
-        self.name = name
+        self.title = title
     def __str__(self):
-        return self.name
+        return self.title
         
         # Evaluate player move against com move
     def evaluate_victor(self, com_move):
-            if com_move in self.beats:
+            if str(com_move) in self.beats:
                 return 'Player wins!'
-            elif com_move == self.name:
+            elif str(com_move) == str(self):
                 return 'It\'s a draw!'
             else:
                 return 'Computer wins!'
+
+ROCK = Move(['scissors', 'lizard'], 'rock')
+PAPER = Move(['rock', 'spock'], 'paper')
+SCISSORS = Move(['paper', 'lizard'], 'scissors')
+LIZARD = Move(['paper', 'spock'], 'lizard')
+SPOCK = Move(['scissors', 'rock'], 'spock')
+            
+MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
         
 def get_player_move():
     print("Enter your move: ", end='')
+    move_key = [
+        'rock',
+        'paper',
+        'scissors',
+        'lizard',
+        'spock'
+    ]
     while True:
         user_input = str(input()).casefold()
-        if user_input in MOVE_LIST:
-            return user_input
+        if user_input in move_key:
+            return MOVES[move_key.index(user_input)]
+        elif user_input.startswith('q'):
+            print('Exiting game.')
+            return 'quit'
         else:
             print('Invalid move. Try again:', end='')
             
 def build_tension():
     for i in range(3):
         print('.', end='')
-        time.sleep(1)
+        time.sleep(SPEED)
     print()
         
+def com_decide(player_history):
+    #TODO make ai
+    dist = dict(reversed(sorted(player_history.items(),
+                                key=lambda item: item[1])))     
+
 def main():
-    help('PIL')
     #TODO make gui
-    
-    rock = Move(['scissors', 'lizard'], 'rock')
-    paper = Move(['rock', 'spock'], 'paper')
-    scissors = Move(['paper', 'lizard'], 'scissors')
-    lizard = Move(['paper', 'spock'], 'lizard')
-    spock = Move(['scissors', 'rock'], 'spock')
     
     player_wins = 0
     com_wins = 0
+    player_history = {
+        ROCK: 0,
+        PAPER: 0,
+        SCISSORS: 0,
+        LIZARD: 0,
+        SPOCK: 0
+    }
     
     while True:  
-        
         player_move = get_player_move()
-        time.sleep(0.5)
-        com_move = rand.choice(MOVE_LIST)
+        if player_move == 'quit':
+            break
+        
+        time.sleep(SPEED / 2)
+        com_decide(player_history)
+        com_move = rand.choice(MOVES)
+        player_history[player_move] += 1
         
         build_tension()
         
-        print(f'Computer\'s move: {com_move.capitalize()}')
-        time.sleep(0.2)
+        print(f'Computer\'s move: {com_move}')
+        time.sleep(SPEED / 5)
         
-        # Determine victor
-        match player_move[1]:
-            case 'o': victor = rock.evaluate_victor(com_move)
-            case 'a': victor = paper.evaluate_victor(com_move)
-            case 'c': victor = scissors.evaluate_victor(com_move)
-            case 'i': victor = lizard.evaluate_victor(com_move)
-            case 'p': victor = spock.evaluate_victor(com_move)
-            case _: print('Error parsing player input')
+        victor = player_move.evaluate_victor(com_move)
 
         # Increment scoreboard
         match victor[0].casefold():
             case 'p': player_wins += 1
             case 'c': com_wins += 1
         
-        time.sleep(1)    
+        time.sleep(SPEED)    
         print(f'{victor} Current score: Player: {player_wins}, Computer: {com_wins}')
-        time.sleep(1)
+        time.sleep(SPEED)
         
-        # Ask if player would like to play again
-        leave = False
-        while True:
-            print('Play again?')
-            match str(input())[0].casefold():
-                case 'y': break
-                case 'n': 
-                    print('Exiting game.')
-                    leave = True
-                    break
-                case _:
-                    print('Invalid input. Try again.')
-            
-        if leave == True:
-            break
 if __name__ == '__main__':
     main()
