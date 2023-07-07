@@ -1,4 +1,5 @@
 import random as rand
+import time
 
 MOVE_LIST = [
             'rock',
@@ -9,31 +10,42 @@ MOVE_LIST = [
         ]
 
 class Move:
-    def __init__(self, beats):
+    def __init__(self, beats, name):
         self.beats = beats
+        self.name = name
+    def __str__(self):
+        return self.name
         
         # Evaluate player move against com move
     def evaluate_victor(self, com_move):
             if com_move in self.beats:
-                return 'Player'
+                return 'Player wins!'
+            elif com_move == self.name:
+                return 'It\'s a draw!'
             else:
-                return 'Computer'
+                return 'Computer wins!'
         
 def get_player_move():
     print("Enter your move: ", end='')
     while True:
-        user_input = str(input())
-        if user_input.casefold() in MOVE_LIST:
-            return user_input.casefold()
+        user_input = str(input()).casefold()
+        if user_input in MOVE_LIST:
+            return user_input
         else:
             print('Invalid move. Try again:', end='')
+            
+def build_tension():
+    for i in range(3):
+        print('.', end='')
+        time.sleep(1)
+    print()
         
 def main():
-    rock = Move(['scissors', 'lizard'])
-    paper = Move(['rock', 'spock'])
-    scissors = Move(['paper', 'lizard'])
-    lizard = Move(['paper', 'spock'])
-    spock = Move(['scissors', 'rock'])
+    rock = Move(['scissors', 'lizard'], 'rock')
+    paper = Move(['rock', 'spock'], 'paper')
+    scissors = Move(['paper', 'lizard'], 'scissors')
+    lizard = Move(['paper', 'spock'], 'lizard')
+    spock = Move(['scissors', 'rock'], 'spock')
     
     player_wins = 0
     com_wins = 0
@@ -41,10 +53,13 @@ def main():
     while True:  
         
         player_move = get_player_move()
+        time.sleep(0.5)
         com_move = rand.choice(MOVE_LIST)
         
-        print(f'Player move: {player_move}')
-        print(f'Computer\'s move: {com_move}')
+        build_tension()
+        
+        print(f'Computer\'s move: {com_move.capitalize()}')
+        time.sleep(0.2)
         
         # Determine victor
         match player_move[1]:
@@ -59,8 +74,10 @@ def main():
         match victor[0].casefold():
             case 'p': player_wins += 1
             case 'c': com_wins += 1
-            
-        print(f'{victor} wins! Current score: Player: {player_wins}, Computer: {com_wins}')
+        
+        time.sleep(1)    
+        print(f'{victor} Current score: Player: {player_wins}, Computer: {com_wins}')
+        time.sleep(1)
         
         # Ask if player would like to play again
         leave = False
