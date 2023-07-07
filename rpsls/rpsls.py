@@ -1,5 +1,7 @@
 import random as rand
 import time
+import tkinter
+import PIL
 
 MOVE_LIST = [
             'rock',
@@ -41,6 +43,9 @@ def build_tension():
     print()
         
 def main():
+    help('PIL')
+    #TODO make gui
+    
     rock = Move(['scissors', 'lizard'], 'rock')
     paper = Move(['rock', 'spock'], 'paper')
     scissors = Move(['paper', 'lizard'], 'scissors')
