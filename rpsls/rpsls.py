@@ -61,6 +61,7 @@ def com_decide(player_history):
 
 def main():
     #TODO make gui
+    #TODO add unique result messages
     
     player_wins = 0
     com_wins = 0
@@ -73,28 +74,27 @@ def main():
     }
     
     while True:  
+        com_decide(player_history)
+        com_move = rand.choice(MOVES)
+        
         player_move = get_player_move()
         if player_move == 'quit':
             break
-        
-        time.sleep(SPEED / 2)
-        com_decide(player_history)
-        com_move = rand.choice(MOVES)
         player_history[player_move] += 1
+        time.sleep(SPEED / 2)
         
         build_tension()
-        
         print(f'Computer\'s move: {com_move}')
         time.sleep(SPEED / 5)
         
         victor = player_move.evaluate_victor(com_move)
-
+        
         # Increment scoreboard
         match victor[0].casefold():
             case 'p': player_wins += 1
             case 'c': com_wins += 1
-        
         time.sleep(SPEED)    
+        
         print(f'{victor} Current score: Player: {player_wins}, Computer: {com_wins}')
         time.sleep(SPEED)
         
