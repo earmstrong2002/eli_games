@@ -16,7 +16,7 @@ class Move:
         
         # Evaluate player move against com move
     def evaluate_victor(self, com_move):
-            if str(com_move) in self.beats:
+            if com_move.title in self.beats:
                 action = self.actions[self.beats.index(com_move.title)]
                 return f'Player wins! {self.title.capitalize()} {action} {com_move.title.capitalize()}.'
             elif str(com_move) == str(self):
@@ -32,20 +32,22 @@ LIZARD = Move(('paper', 'spock'), 'lizard', ('eats', 'poisons'))
 SPOCK = Move(('scissors', 'rock'), 'spock', ('smashes', 'vaporizes'))
             
 MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
-        
+   
+MOVE_KEY = [
+'rock',
+'paper',
+'scissors',
+'lizard',
+'spock'
+]
+            
 def get_player_move():
     print("Enter your move: ", end='')
-    move_key = [
-        'rock',
-        'paper',
-        'scissors',
-        'lizard',
-        'spock'
-    ]
+
     while True:
         user_input = str(input()).casefold()
-        if user_input in move_key:
-            return MOVES[move_key.index(user_input)]
+        if user_input in MOVE_KEY:
+            return MOVES[MOVE_KEY.index(user_input)]
         elif user_input.startswith('q'):
             print('Exiting game.')
             return 'quit'
@@ -63,16 +65,15 @@ def com_decide(player_history): #FIXME
     dist = dict(reversed(sorted(player_history.items(),
                                 key=lambda item: item[1])))
     top_moves = list(dist.items())
-    best_option = ROCK
+    best_option = rand.choice(MOVES)
     if top_moves[0][1] > 0:
-        print(top_moves)
         top_move = top_moves[0][0].title
         # find what beats player's most used move
         beats_top = []
         for move in MOVES:
             if top_move in move.beats:
                 beats_top.append(move.title)
-        print(beats_top)
+        best_option = MOVES[MOVE_KEY.index(rand.choice(beats_top))]
         # find what beats the options that beat player's top move
         threats = [] # temp storage for the moves that beat each option
         beaten_by = [] # moves that beat each option
@@ -83,10 +84,9 @@ def com_decide(player_history): #FIXME
             if len(threats) > 1:
                 beaten_by.append(tuple(threats))
             threats.clear()
-        print(beaten_by)
         # find which option is beaten by less frequently used player moves
         better_move = []
-        best_option_beaten_freq = 0
+        best_option_beaten_freq = 0.5
         for option in beaten_by:
             option_beaten_freq = 0
             for i in option:
@@ -97,8 +97,12 @@ def com_decide(player_history): #FIXME
                     if (np.reciprocal(option_beaten_freq)
                             <= np.reciprocal(best_option_beaten_freq)):
                         best_option_beaten_freq = option_beaten_freq
-                        best_option = option
-    return best_option   
+                        best_option = (MOVES[MOVE_KEY.index(beats_top
+                                      [beaten_by.index(option)])])
+                        
+    print(f'chose {best_option}')
+    # return MOVES[MOVE_KEY.index(best_option)]
+    return best_option
         
 def main():
     #TODO make gui
