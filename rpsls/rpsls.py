@@ -2,30 +2,34 @@ import random as rand
 import time
 import tkinter
 import PIL
+import numpy as np
 
 SPEED = 0.1
 
 class Move:
-    def __init__(self, beats, title):
+    def __init__(self, beats, title, actions):
         self.beats = beats
         self.title = title
+        self.actions = actions
     def __str__(self):
         return self.title
         
         # Evaluate player move against com move
     def evaluate_victor(self, com_move):
             if str(com_move) in self.beats:
-                return 'Player wins!'
+                action = self.actions[self.beats.index(com_move.title)]
+                return f'Player wins! {self.title.capitalize()} {action} {com_move.title.capitalize()}.'
             elif str(com_move) == str(self):
                 return 'It\'s a draw!'
             else:
-                return 'Computer wins!'
+                action = com_move.actions[com_move.beats.index(self.title)]
+                return f'Computer wins! {com_move.title.capitalize()} {action} {self.title.capitalize()}.'
 
-ROCK = Move(['scissors', 'lizard'], 'rock')
-PAPER = Move(['rock', 'spock'], 'paper')
-SCISSORS = Move(['paper', 'lizard'], 'scissors')
-LIZARD = Move(['paper', 'spock'], 'lizard')
-SPOCK = Move(['scissors', 'rock'], 'spock')
+ROCK = Move(('scissors', 'lizard'), 'rock', ('crushes', 'crushes'))
+PAPER = Move(('rock', 'spock'), 'paper', ('covers', 'disproves'))
+SCISSORS = Move(('paper', 'lizard'), 'scissors', ('cuts', 'decapitates'))
+LIZARD = Move(('paper', 'spock'), 'lizard', ('eats', 'poisons'))
+SPOCK = Move(('scissors', 'rock'), 'spock', ('smashes', 'vaporizes'))
             
 MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
         
@@ -46,7 +50,7 @@ def get_player_move():
             print('Exiting game.')
             return 'quit'
         else:
-            print('Invalid move. Try again:', end='')
+            print('Invalid move. Try again: ', end='')
             
 def build_tension():
     for i in range(3):
@@ -54,14 +58,50 @@ def build_tension():
         time.sleep(SPEED)
     print()
         
-def com_decide(player_history):
-    #TODO make ai
+def com_decide(player_history): #FIXME
+    # sort dict of player_history by frequency
     dist = dict(reversed(sorted(player_history.items(),
-                                key=lambda item: item[1])))     
-
+                                key=lambda item: item[1])))
+    top_moves = list(dist.items())
+    best_option = ROCK
+    if top_moves[0][1] > 0:
+        print(top_moves)
+        top_move = top_moves[0][0].title
+        # find what beats player's most used move
+        beats_top = []
+        for move in MOVES:
+            if top_move in move.beats:
+                beats_top.append(move.title)
+        print(beats_top)
+        # find what beats the options that beat player's top move
+        threats = [] # temp storage for the moves that beat each option
+        beaten_by = [] # moves that beat each option
+        for option in beats_top:
+            for move in MOVES:
+                if option in move.beats:
+                    threats.append(move.title)
+            if len(threats) > 1:
+                beaten_by.append(tuple(threats))
+            threats.clear()
+        print(beaten_by)
+        # find which option is beaten by less frequently used player moves
+        better_move = []
+        best_option_beaten_freq = 0
+        for option in beaten_by:
+            option_beaten_freq = 0
+            for i in option:
+                for move in top_moves:
+                    if move[0].title == i:
+                        option_beaten_freq += move[1]
+                if option_beaten_freq != 0:
+                    if (np.reciprocal(option_beaten_freq)
+                            <= np.reciprocal(best_option_beaten_freq)):
+                        best_option_beaten_freq = option_beaten_freq
+                        best_option = option
+    return best_option   
+        
 def main():
     #TODO make gui
-    #TODO add unique result messages
     
     player_wins = 0
     com_wins = 0
@@ -74,8 +114,7 @@ def main():
     }
     
     while True:  
-        com_decide(player_history)
-        com_move = rand.choice(MOVES)
+        com_move = com_decide(player_history)
         
         player_move = get_player_move()
         if player_move == 'quit':
