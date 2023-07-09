@@ -4,13 +4,26 @@ import tkinter
 import PIL
 import numpy as np
 
-SPEED = 0.1
+SPEED = 1
+
+MOVE_KEY = [
+'rock',
+'paper',
+'scissors',
+'lizard',
+'spock'
+]
 
 class Move:
     def __init__(self, beats, title, actions):
         self.beats = beats
+        self.beaten_by = []
         self.title = title
         self.actions = actions
+        for move in MOVE_KEY:
+            if move not in self.beats and move != self.title:
+                self.beaten_by.append(move)
+                
     def __str__(self):
         return self.title
         
@@ -33,13 +46,6 @@ SPOCK = Move(('scissors', 'rock'), 'spock', ('smashes', 'vaporizes'))
             
 MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
    
-MOVE_KEY = [
-'rock',
-'paper',
-'scissors',
-'lizard',
-'spock'
-]
             
 def get_player_move():
     print("Enter your move: ", end='')
@@ -60,64 +66,41 @@ def build_tension():
         time.sleep(SPEED)
     print()
         
-def com_decide(player_history): #FIXME
-    # sort dict of player_history by frequency
-    dist = dict(reversed(sorted(player_history.items(),
-                                key=lambda item: item[1])))
-    top_moves = list(dist.items())
-    best_option = rand.choice(MOVES)
-    if top_moves[0][1] > 0:
-        top_move = top_moves[0][0].title
-        # find what beats player's most used move
-        beats_top = []
-        for move in MOVES:
-            if top_move in move.beats:
-                beats_top.append(move.title)
-        best_option = MOVES[MOVE_KEY.index(rand.choice(beats_top))]
-        # find what beats the options that beat player's top move
-        threats = [] # temp storage for the moves that beat each option
-        beaten_by = [] # moves that beat each option
-        for option in beats_top:
-            for move in MOVES:
-                if option in move.beats:
-                    threats.append(move.title)
-            if len(threats) > 1:
-                beaten_by.append(tuple(threats))
-            threats.clear()
-        # find which option is beaten by less frequently used player moves
-        better_move = []
-        best_option_beaten_freq = 0.5
-        for option in beaten_by:
-            option_beaten_freq = 0
-            for i in option:
-                for move in top_moves:
-                    if move[0].title == i:
-                        option_beaten_freq += move[1]
-                if option_beaten_freq != 0:
-                    if (np.reciprocal(option_beaten_freq)
-                            <= np.reciprocal(best_option_beaten_freq)):
-                        best_option_beaten_freq = option_beaten_freq
-                        best_option = (MOVES[MOVE_KEY.index(beats_top
-                                      [beaten_by.index(option)])])
-                        
-    print(f'chose {best_option}')
-    # return MOVES[MOVE_KEY.index(best_option)]
-    return best_option
+def com_decide(player_history):
+    # build map of best options stored in confidence
+    confidence = []
+    for move in MOVES:
+        play_count = 0
+        for i in move.beats:
+            play_count += player_history[MOVES[MOVE_KEY.index(i)]]
+        confidence.append(play_count)
+    for i in range(len(confidence)):
+        confidence[i] = confidence[i] ** 2
+    # randomly choose an option, weighted by play quality
+    return rand.choices(MOVES, weights=confidence, k=1)[0]
         
+def player_decide(): #unused
+    confidence = [60, 30, 20, 15, 12]   
+    return rand.choices(MOVES, weights=confidence, k=1)[0]
+
+def pad_string(string, length):
+    pad = length - len(string)
+    return (string + ' ' * pad)
+
 def main():
     #TODO make gui
     
     player_wins = 0
     com_wins = 0
     player_history = {
-        ROCK: 0,
-        PAPER: 0,
-        SCISSORS: 0,
-        LIZARD: 0,
-        SPOCK: 0
+        ROCK: 1,
+        PAPER: 1,
+        SCISSORS: 1,
+        LIZARD: 1,
+        SPOCK: 1,
     }
-    
-    while True:  
+   
+    for i in range(100):  
         com_move = com_decide(player_history)
         
         player_move = get_player_move()
@@ -138,7 +121,7 @@ def main():
             case 'c': com_wins += 1
         time.sleep(SPEED)    
         
-        print(f'{victor} Current score: Player: {player_wins}, Computer: {com_wins}')
+        print(f'{pad_string(victor, 45)} Current score: Player: {player_wins}, Computer: {com_wins}')
         time.sleep(SPEED)
         
 if __name__ == '__main__':
