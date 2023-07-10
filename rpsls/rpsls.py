@@ -1,6 +1,6 @@
 import random as rand
 import time
-import tkinter
+import tkinter as tk
 import PIL
 import numpy as np
 
@@ -13,6 +13,10 @@ MOVE_KEY = [
 'lizard',
 'spock'
 ]
+
+class Window(tk.Tk):
+    def __init__(self):
+        self.title('Play R.P.S.L.S.')
 
 class Move:
     def __init__(self, beats, title, actions):
@@ -86,6 +90,8 @@ def player_decide(): #unused
 def pad_string(string, length):
     pad = length - len(string)
     return (string + ' ' * pad)
+
+
 
 def main():
     #TODO make gui
