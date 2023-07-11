@@ -14,10 +14,6 @@ MOVE_KEY = [
 'spock'
 ]
 
-class Window(tk.Tk):
-    def __init__(self):
-        self.title('Play R.P.S.L.S.')
-
 class Move:
     def __init__(self, beats, title, actions):
         self.beats = beats
@@ -41,6 +37,36 @@ class Move:
             else:
                 action = com_move.actions[com_move.beats.index(self.title)]
                 return f'Computer wins! {com_move.title.capitalize()} {action} {self.title.capitalize()}.'
+
+class Button(tk.Button):
+    def __init__(self, title, move):
+        self['text'] = title
+        #TODO finish me!
+
+class Window(tk.Tk):
+    def __init__(self):
+        self.title('Play R.P.S.L.S.')
+        self.geometry('640x360')
+        
+        self.rowconfigure(0, weight=1, pad=5)
+        self.rowconfigure(1, weight=0, pad=5)
+        self.columnconfigure(0, weight=1, pad=5)
+        
+        self.create_widgets()
+    
+    def create_widgets():
+        lbl_placeholder = tk.Label(
+            text='bread and butter'
+        )
+        lbl_placeholder.grid(
+            column=0, row=0,
+            sticky='nsew'
+        )
+        
+        # make 5 buttons on the bottom
+        for btn in range(5):
+            #TODO finish me!
+            pass
 
 ROCK = Move(('scissors', 'lizard'), 'rock', ('crushes', 'crushes'))
 PAPER = Move(('rock', 'spock'), 'paper', ('covers', 'disproves'))
