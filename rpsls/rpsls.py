@@ -2,7 +2,6 @@ import random as rand
 import time
 import tkinter as tk
 import PIL
-import numpy as np
 
 SPEED = 1
 
@@ -90,11 +89,11 @@ def get_player_move():
         else:
             print('Invalid move. Try again: ', end='')
             
-def build_tension():
-    for i in range(3):
-        print('.', end='')
-        time.sleep(SPEED)
-    print()
+# def build_tension():
+#     for i in range(3):
+#         print('.', end='')
+#         time.sleep(SPEED)
+#     print()
         
 def com_decide(player_history):
     # build map of best options stored in confidence
@@ -109,9 +108,9 @@ def com_decide(player_history):
     # randomly choose an option, weighted by play quality
     return rand.choices(MOVES, weights=confidence, k=1)[0]
         
-def player_decide(): #unused
-    confidence = [60, 30, 20, 15, 12]   
-    return rand.choices(MOVES, weights=confidence, k=1)[0]
+# def player_decide(): # unused
+#     confidence = [60, 30, 20, 15, 12]   
+#     return rand.choices(MOVES, weights=confidence, k=1)[0]
 
 def pad_string(string, length):
     pad = length - len(string)
@@ -141,7 +140,6 @@ def main():
         player_history[player_move] += 1
         time.sleep(SPEED / 2)
         
-        build_tension()
         print(f'Computer\'s move: {com_move}')
         time.sleep(SPEED / 5)
         
