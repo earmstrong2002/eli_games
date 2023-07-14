@@ -76,25 +76,25 @@ class App(tk.Tk): #TODO update display
         # configure frame for move picker
         self.frm_move_picker = tk.Frame(self.frm_main)
         self.frm_move_picker.rowconfigure(0, weight=1)
-        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4), weight=1)
         self.frm_move_picker.grid(column=0, row=1, sticky='nsew')
         
         # populate move picker
         btn_rock = tk.Button(self.frm_move_picker, text='ROCK',
-                             command=lambda: main(ROCK))
-        btn_rock.grid(column=0, row=0)
+                             command=lambda: run_game(ROCK))
+        btn_rock.grid(column=0, row=0, sticky='nsew')
         btn_paper = tk.Button(self.frm_move_picker, text='PAPER',
-                              command=lambda: main(PAPER))
-        btn_paper.grid(column=1, row=0)
+                              command=lambda: run_game(PAPER))
+        btn_paper.grid(column=1, row=0, sticky='nsew')
         btn_scissors = tk.Button(self.frm_move_picker, text='SCISSORS',
-                              command=lambda: main(SCISSORS))
-        btn_scissors.grid(column=2, row=0)
+                              command=lambda: run_game(SCISSORS))
+        btn_scissors.grid(column=2, row=0, sticky='nsew')
         btn_lizard = tk.Button(self.frm_move_picker, text='LIZARD',
-                              command=lambda: main(LIZARD))
-        btn_lizard.grid(column=3, row=0)
+                              command=lambda: run_game(LIZARD))
+        btn_lizard.grid(column=3, row=0, sticky='nsew')
         btn_spock = tk.Button(self.frm_move_picker, text='SPOCK',
-                              command=lambda: main(SPOCK))
-        btn_spock.grid(column=4, row=0)
+                              command=lambda: run_game(SPOCK))
+        btn_spock.grid(column=4, row=0, sticky='nsew')
 
         
 
@@ -142,7 +142,7 @@ class Rps():
             case 'p': self.player_wins += 1
             case 'c': self.com_wins += 1
 
-def main(player_move):
+def run_game(player_move):
     print(player_move)
     com_move = rps.com_decide()
     print(com_move)
@@ -151,8 +151,12 @@ def main(player_move):
     rps.increment_scoreboard(player_move, victor)
     root.increment_scoreboard()
     
-    
-if __name__ == '__main__':
+def main():
+    global rps
+    global root
     rps = Rps()
     root = App()
     root.mainloop()
+     
+if __name__ == '__main__':
+    main()
