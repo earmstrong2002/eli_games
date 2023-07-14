@@ -25,47 +25,6 @@ class Move:
                 
     def __str__(self):
         return self.title
-        
-        # Evaluate player move against com move
-    def evaluate_victor(self, com_move):
-            if com_move.title in self.beats:
-                action = self.actions[self.beats.index(com_move.title)]
-                return f'Player wins! {self.title.capitalize()} {action} {com_move.title.capitalize()}.'
-            elif str(com_move) == str(self):
-                return 'It\'s a draw!'
-            else:
-                action = com_move.actions[com_move.beats.index(self.title)]
-                return f'Computer wins! {com_move.title.capitalize()} {action} {self.title.capitalize()}.'
-
-class Button(tk.Button):
-    def __init__(self, title, move):
-        self['text'] = title
-        #TODO finish me!
-
-class Window(tk.Tk):
-    def __init__(self):
-        self.title('Play R.P.S.L.S.')
-        self.geometry('640x360')
-        
-        self.rowconfigure(0, weight=1, pad=5)
-        self.rowconfigure(1, weight=0, pad=5)
-        self.columnconfigure(0, weight=1, pad=5)
-        
-        self.create_widgets()
-    
-    def create_widgets():
-        lbl_placeholder = tk.Label(
-            text='bread and butter'
-        )
-        lbl_placeholder.grid(
-            column=0, row=0,
-            sticky='nsew'
-        )
-        
-        # make 5 buttons on the bottom
-        for btn in range(5):
-            #TODO finish me!
-            pass
 
 ROCK = Move(('scissors', 'lizard'), 'rock', ('crushes', 'crushes'))
 PAPER = Move(('rock', 'spock'), 'paper', ('covers', 'disproves'))
@@ -74,85 +33,126 @@ LIZARD = Move(('paper', 'spock'), 'lizard', ('eats', 'poisons'))
 SPOCK = Move(('scissors', 'rock'), 'spock', ('smashes', 'vaporizes'))
             
 MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
-   
-            
-def get_player_move():
-    print("Enter your move: ", end='')
-
-    while True:
-        user_input = str(input()).casefold()
-        if user_input in MOVE_KEY:
-            return MOVES[MOVE_KEY.index(user_input)]
-        elif user_input.startswith('q'):
-            print('Exiting game.')
-            return 'quit'
-        else:
-            print('Invalid move. Try again: ', end='')
-            
-# def build_tension():
-#     for i in range(3):
-#         print('.', end='')
-#         time.sleep(SPEED)
-#     print()
-        
-def com_decide(player_history):
-    # build map of best options stored in confidence
-    confidence = []
-    for move in MOVES:
-        play_count = 0
-        for i in move.beats:
-            play_count += player_history[MOVES[MOVE_KEY.index(i)]]
-        confidence.append(play_count)
-    for i in range(len(confidence)):
-        confidence[i] = confidence[i] ** 2
-    # randomly choose an option, weighted by play quality
-    return rand.choices(MOVES, weights=confidence, k=1)[0]
-        
-# def player_decide(): # unused
-#     confidence = [60, 30, 20, 15, 12]   
-#     return rand.choices(MOVES, weights=confidence, k=1)[0]
 
 def pad_string(string, length):
     pad = length - len(string)
     return (string + ' ' * pad)
 
-
-
-def main():
-    #TODO make gui
+class App(tk.Tk): #TODO update display
+    def __init__(self):
+        super().__init__()
+        self.geometry('600x360')
+        self.title('Play R.P.S.L.S.')
+        
+        self.make_widgets()
     
-    player_wins = 0
-    com_wins = 0
-    player_history = {
-        ROCK: 1,
-        PAPER: 1,
-        SCISSORS: 1,
-        LIZARD: 1,
-        SPOCK: 1,
-    }
-   
-    for i in range(100):  
-        com_move = com_decide(player_history)
+    def make_widgets(self):
+        # configure primary frame
+        self.frm_main = tk.Frame(self)
+        self.frm_main.columnconfigure(0, weight=1)
+        self.frm_main.rowconfigure(0, weight=1)
+        self.frm_main.rowconfigure(1, weight=0, minsize=60)
+        self.frm_main.pack(fill='both', expand=True)
         
-        player_move = get_player_move()
-        if player_move == 'quit':
-            break
-        player_history[player_move] += 1
-        time.sleep(SPEED / 2)
+        # populate with elements
+        self.make_display()
+        self.make_move_picker()
         
-        print(f'Computer\'s move: {com_move}')
-        time.sleep(SPEED / 5)
+    def make_display(self):
+        # configure frame for display
+        self.frm_display = tk.Frame(self.frm_main)
+        self.frm_display.grid(column=0, row=0, sticky='nsew')
         
-        victor = player_move.evaluate_victor(com_move)
+        # populate display        
+        self.lbl_scoreboard = tk.Label(
+            text=f'Player wins: 0, Com wins: 0'
+        )
+        self.lbl_scoreboard.pack()
         
-        # Increment scoreboard
-        match victor[0].casefold():
-            case 'p': player_wins += 1
-            case 'c': com_wins += 1
-        time.sleep(SPEED)    
+    def increment_scoreboard(self):
+        self.lbl_scoreboard['text'] = f'Player wins: {rps.player_wins}, Com wins: {rps.com_wins}'
         
-        print(f'{pad_string(victor, 45)} Current score: Player: {player_wins}, Computer: {com_wins}')
-        time.sleep(SPEED)
+    def make_move_picker(self):
+        # configure frame for move picker
+        self.frm_move_picker = tk.Frame(self.frm_main)
+        self.frm_move_picker.rowconfigure(0, weight=1)
+        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4, 5), weight=1)
+        self.frm_move_picker.grid(column=0, row=1, sticky='nsew')
         
+        # populate move picker
+        btn_rock = tk.Button(self.frm_move_picker, text='ROCK',
+                             command=lambda: main(ROCK))
+        btn_rock.grid(column=0, row=0)
+        btn_paper = tk.Button(self.frm_move_picker, text='PAPER',
+                              command=lambda: main(PAPER))
+        btn_paper.grid(column=1, row=0)
+        btn_scissors = tk.Button(self.frm_move_picker, text='SCISSORS',
+                              command=lambda: main(SCISSORS))
+        btn_scissors.grid(column=2, row=0)
+        btn_lizard = tk.Button(self.frm_move_picker, text='LIZARD',
+                              command=lambda: main(LIZARD))
+        btn_lizard.grid(column=3, row=0)
+        btn_spock = tk.Button(self.frm_move_picker, text='SPOCK',
+                              command=lambda: main(SPOCK))
+        btn_spock.grid(column=4, row=0)
+
+        
+
+class Rps():
+    def __init__(self):
+        self.player_history = {
+            ROCK: 1,
+            PAPER: 1,
+            SCISSORS: 1,
+            LIZARD: 1,
+            SPOCK: 1,
+        }
+        self.player_wins = 0
+        self.com_wins = 0
+
+    def com_decide(self):
+        # build map of best options stored in confidence
+        confidence = []
+        for move in MOVES:
+            play_count = 0
+            for i in move.beats:
+                play_count += self.player_history[MOVES[MOVE_KEY.index(i)]]
+            confidence.append(play_count)
+        for i in range(len(confidence)):
+            confidence[i] = confidence[i] ** 2
+        # randomly choose an option, weighted by play quality
+        return rand.choices(MOVES, weights=confidence, k=1)[0]
+
+    def evaluate_victor(self, player_move, com_move):
+        if com_move.title == player_move.title:
+            action = None
+            victor = 'draw'
+        elif com_move.title in player_move.beats:
+            action = (player_move.actions
+                        [player_move.beats.index(com_move.title)])
+            victor = 'player'
+        else: # computer wins
+            action = com_move.actions[com_move.beats.index(player_move.title)]
+            victor = 'com'
+        return (victor, action)
+    
+    def increment_scoreboard(self, player_move, victor):
+        self.player_history[player_move] += 1
+        match victor[0][0]:
+            case 'p': self.player_wins += 1
+            case 'c': self.com_wins += 1
+
+def main(player_move):
+    print(player_move)
+    com_move = rps.com_decide()
+    print(com_move)
+    victor = rps.evaluate_victor(player_move, com_move)
+    print(victor)
+    rps.increment_scoreboard(player_move, victor)
+    root.increment_scoreboard()
+    
+    
 if __name__ == '__main__':
-    main()
+    rps = Rps()
+    root = App()
+    root.mainloop()
