@@ -38,12 +38,14 @@ def pad_string(string, length):
     pad = length - len(string)
     return (string + ' ' * pad)
 
-class App(tk.Tk): #TODO update display
+class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.geometry('600x360')
         self.title('Play R.P.S.L.S.')
-        
+        #TODO FINALIZE LAYOUT
+        #TODO incorporate ttk styles
+        #TODO add GRAPHICS
         self.make_widgets()
     
     def make_widgets(self):
@@ -61,13 +63,16 @@ class App(tk.Tk): #TODO update display
     def make_display(self):
         # configure frame for display
         self.frm_display = tk.Frame(self.frm_main)
+        self.frm_display.columnconfigure((0, 1, 2), weight=1, pad=5)
+        self.frm_display.rowconfigure((0, 1), weight=1, pad=5)
         self.frm_display.grid(column=0, row=0, sticky='nsew')
         
         # populate display        
         self.lbl_scoreboard = tk.Label(
+            self.frm_display,
             text=f'Player wins: 0, Com wins: 0'
         )
-        self.lbl_scoreboard.pack()
+        self.lbl_scoreboard.grid(column = 1, row=0)
         
     def increment_scoreboard(self):
         self.lbl_scoreboard['text'] = f'Player wins: {rps.player_wins}, Com wins: {rps.com_wins}'
@@ -75,25 +80,30 @@ class App(tk.Tk): #TODO update display
     def make_move_picker(self):
         # configure frame for move picker
         self.frm_move_picker = tk.Frame(self.frm_main)
-        self.frm_move_picker.rowconfigure(0, weight=1)
-        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4), weight=1)
+        self.frm_move_picker.rowconfigure(0, weight=1, pad=5)
+        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4), weight=1, pad=5)
         self.frm_move_picker.grid(column=0, row=1, sticky='nsew')
         
         # populate move picker
         btn_rock = tk.Button(self.frm_move_picker, text='ROCK',
-                             command=lambda: run_game(ROCK))
+                             command=lambda: run_game(ROCK),
+                             relief='raised', border=10)
         btn_rock.grid(column=0, row=0, sticky='nsew')
         btn_paper = tk.Button(self.frm_move_picker, text='PAPER',
-                              command=lambda: run_game(PAPER))
+                              command=lambda: run_game(PAPER),
+                              relief='raised', border=10)
         btn_paper.grid(column=1, row=0, sticky='nsew')
         btn_scissors = tk.Button(self.frm_move_picker, text='SCISSORS',
-                              command=lambda: run_game(SCISSORS))
+                              command=lambda: run_game(SCISSORS),
+                              relief='raised', border=10)
         btn_scissors.grid(column=2, row=0, sticky='nsew')
         btn_lizard = tk.Button(self.frm_move_picker, text='LIZARD',
-                              command=lambda: run_game(LIZARD))
+                              command=lambda: run_game(LIZARD),
+                              relief='raised', border=10)
         btn_lizard.grid(column=3, row=0, sticky='nsew')
         btn_spock = tk.Button(self.frm_move_picker, text='SPOCK',
-                              command=lambda: run_game(SPOCK))
+                              command=lambda: run_game(SPOCK),
+                              relief='raised', border=10)
         btn_spock.grid(column=4, row=0, sticky='nsew')
 
         
