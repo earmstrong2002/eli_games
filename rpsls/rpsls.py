@@ -62,10 +62,10 @@ class App(tk.Tk):
         
     def make_display(self):
         # configure frame for display
-        self.frm_display = tk.Frame(self.frm_main)
+        self.frm_display = tk.Frame(self.frm_main, relief='groove', border=10)
         self.frm_display.columnconfigure((0, 1, 2), weight=1, pad=5)
         self.frm_display.rowconfigure((0, 1), weight=1, pad=5)
-        self.frm_display.grid(column=0, row=0, sticky='nsew')
+        self.frm_display.grid(column=0, row=0, sticky='nsew',)
         
         # populate display        
         self.lbl_scoreboard = tk.Label(
