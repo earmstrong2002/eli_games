@@ -15,12 +15,8 @@ MOVE_KEY = [
 class Move:
     def __init__(self, beats, title, actions):
         self.beats = beats
-        self.beaten_by = []
         self.title = title
         self.actions = actions
-        for move in MOVE_KEY:
-            if move not in self.beats and move != self.title:
-                self.beaten_by.append(move)
                 
     def __str__(self):
         return self.title
