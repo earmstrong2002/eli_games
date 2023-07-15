@@ -2,16 +2,6 @@ import random as rand
 import tkinter as tk
 from tkinter import ttk
 
-SPEED = 1
-
-MOVE_KEY = [
-'rock',
-'paper',
-'scissors',
-'lizard',
-'spock'
-]
-
 class Move:
     def __init__(self, title, beats=None, actions=None):
         self.beats = beats
@@ -28,6 +18,7 @@ def initialize_moves():
     global SCISSORS
     global LIZARD
     global SPOCK
+    global MOVES
     
     ROCK = Move('rock')
     PAPER = Move('paper')
@@ -48,8 +39,8 @@ def initialize_moves():
     SCISSORS.actions = ('cuts', 'decapitates')
     LIZARD.actions = ('eats', 'poisons')
     SPOCK.actions = ('vaporizes', 'smashes')
-            
-MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
+    
+    MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
 
 class App(tk.Tk):
     def __init__(self):
@@ -133,6 +124,7 @@ class Rps():
             SCISSORS: 1,
             LIZARD: 1,
             SPOCK: 1,
+
         }
         self.player_wins = 0
         self.com_wins = 0
@@ -143,7 +135,7 @@ class Rps():
         for move in MOVES:
             play_count = 0
             for i in move.beats:
-                play_count += self.player_history[MOVES[MOVE_KEY.index(i)]]
+                play_count += self.player_history[i]
             confidence.append(play_count)
         for i in range(len(confidence)):
             confidence[i] = confidence[i] ** 2
@@ -151,15 +143,15 @@ class Rps():
         return rand.choices(MOVES, weights=confidence, k=1)[0]
 
     def evaluate_victor(self, player_move, com_move):
-        if com_move.title == player_move.title:
+        if com_move == player_move:
             action = None
             victor = 'draw'
-        elif com_move.title in player_move.beats:
+        elif com_move in player_move.beats:
             action = (player_move.actions
-                        [player_move.beats.index(com_move.title)])
+                        [player_move.beats.index(com_move)])
             victor = 'player'
         else: # computer wins
-            action = com_move.actions[com_move.beats.index(player_move.title)]
+            action = com_move.actions[com_move.beats.index(player_move)]
             victor = 'com'
         return (victor, action)
     
