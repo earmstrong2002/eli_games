@@ -171,8 +171,6 @@ def run_game(player_move):
     root.increment_scoreboard()
     
 def main():
-    #FIXME refactor to function now that Move.beats contains objects
-    # instead of string literals
     initialize_moves()
     global rps
     global root
