@@ -47,7 +47,9 @@ def get_player_move():
             print('Exiting game.')
             return 'quit'
         else:
-            print('Invalid move. Try again: ', end='')
+            print("Invalid move. Valid inputs are (not case sensitive):")
+            print("'rock', 'paper', 'scissors', 'lizard', spock'")
+            print("or type 'quit' to close the program")
             
 def com_decide(player_history):
     # build map of best options stored in confidence
@@ -68,6 +70,19 @@ def pad_string(string, length):
     pad = length - len(string)
     return (string + ' ' * pad)
 
+def intro():
+    print("Welcome to R.P.S.L.S! Here are the rules:")
+    print('Scissors cuts Paper')
+    print('paper covers Rock')
+    print('Rock crushes Lizard')
+    print('Lizard poisons Spock')
+    print('Spock smashes Scissors')
+    print('Scissors decapitates Lizard')
+    print('Lizard eats Paper')
+    print('Paper disproves Spock')
+    print('Spock vaporizes Rock')
+    print('(and as it always has) Rock crushes Scissors')
+
 def main():
     #TODO make gui
     
@@ -80,8 +95,10 @@ def main():
         LIZARD: 1,
         SPOCK: 1,
     }
-   
-    for i in range(100):  
+    
+    intro()
+    
+    while True:  
         com_move = com_decide(player_history)
         
         player_move = get_player_move()
