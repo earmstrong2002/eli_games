@@ -13,7 +13,7 @@ MOVE_KEY = [
 ]
 
 class Move:
-    def __init__(self, beats, title, actions):
+    def __init__(self, title, beats=None, actions=None):
         self.beats = beats
         self.title = title
         self.actions = actions
@@ -21,11 +21,33 @@ class Move:
     def __str__(self):
         return self.title
 
-ROCK = Move(('scissors', 'lizard'), 'rock', ('crushes', 'crushes'))
-PAPER = Move(('rock', 'spock'), 'paper', ('covers', 'disproves'))
-SCISSORS = Move(('paper', 'lizard'), 'scissors', ('cuts', 'decapitates'))
-LIZARD = Move(('paper', 'spock'), 'lizard', ('eats', 'poisons'))
-SPOCK = Move(('scissors', 'rock'), 'spock', ('smashes', 'vaporizes'))
+# instantiates Move objects
+def initialize_moves(): 
+    global ROCK
+    global PAPER
+    global SCISSORS
+    global LIZARD
+    global SPOCK
+    
+    ROCK = Move('rock')
+    PAPER = Move('paper')
+    SCISSORS = Move('scissors')
+    LIZARD = Move('lizard')
+    SPOCK = Move('spock')
+    
+    # defining which moves each move beats
+    ROCK.beats = (SCISSORS, LIZARD)
+    PAPER.beats = (ROCK, SPOCK)
+    SCISSORS.beats = (PAPER, LIZARD)
+    LIZARD.beats = (PAPER, SPOCK)
+    SPOCK.beats = (ROCK, SCISSORS)
+    
+    # defining what verb to use when each move beats each other move
+    ROCK.actions = ('crushes', 'crushes')
+    PAPER.actions = ('covers', 'disproves')
+    SCISSORS.actions = ('cuts', 'decapitates')
+    LIZARD.actions = ('eats', 'poisons')
+    SPOCK.actions = ('vaporizes', 'smashes')
             
 MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
 
@@ -157,6 +179,9 @@ def run_game(player_move):
     root.increment_scoreboard()
     
 def main():
+    #FIXME refactor to function now that Move.beats contains objects
+    # instead of string literals
+    initialize_moves()
     global rps
     global root
     rps = Rps()
