@@ -180,12 +180,18 @@ class Rps():
         self.draws = 0
         self.com_wins = 0
 
-    def com_decide(self):
+    #TODO refactor Rps.com_decide
+    # rather than rebuilding confidence list every round,
+    # store confidence list as class attribute and adjust it
+    # each round according to player's most recent move
+    def com_decide(self): 
         # build map of best options stored in confidence
         confidence = []
         for move in MOVES:
             play_count = 0
             for i in move.beats:
+                # increment play_count for move by number of times
+                # player has played move in move.beats
                 play_count += self.player_history[i]
             confidence.append(play_count)
         for i in range(len(confidence)):
