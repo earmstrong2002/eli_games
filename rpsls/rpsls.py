@@ -47,7 +47,7 @@ def initialize_moves():
     LIZARD.actions = ('eats', 'poisons')
     SPOCK.actions = ('vaporizes', 'smashes')
     
-    # getting file directories for associated move textures
+    # get file directories for associated move textures
     pths_textures = list(Path('rpsls/textures/').glob('*'))
     strs_textures = []
     for pth in pths_textures: # convert path objects to strings for processing
@@ -60,8 +60,9 @@ def initialize_moves():
     for pth in strs_textures: # isolate file name, without extension
         im_name = pth.split('/')[-1][:-4]
         filenames_textures.append(im_name)
-    
-    for move in MOVES: # assign textures to appropriate move objects
+        
+    # assign textures to appropriate move objects
+    for move in MOVES: 
         index = filenames_textures.index(move.title)
         move.texture = Image.open(pths_textures[index])
 
@@ -90,7 +91,8 @@ class App(tk.Tk):
         
         # establish ttk theme
         self.default = ttk.Style()
-        self.default.theme_settings('default', { #FIXME style is not applied to widgets
+        #FIXME style is not applied to widgets
+        self.default.theme_settings('default', { 
             'TButton': {
                 'map': {
                     'foreground': [('pressed', 'thistle4'),
@@ -128,11 +130,11 @@ class App(tk.Tk):
         self.make_screen()
         
     def make_screen(self):
-        pass
+        pass #TODO finish screen
     
-    def increment_scoreboard(self):
+    def increment_scoreboard(self, player_wins, draws, com_wins):
         self.scoreboard.set(
-            f'{rps.player_wins} -- {rps.draws} -- {rps.com_wins}'
+            f'{player_wins} -- {draws} -- {com_wins}'
             )
         
     def make_move_picker(self):
@@ -218,7 +220,7 @@ def run_game(player_move):
     victor = rps.evaluate_victor(player_move, com_move)
     print(victor)
     rps.increment_scoreboard(player_move, victor)
-    root.increment_scoreboard()
+    root.increment_scoreboard(rps.player_wins, rps.draws, rps.com_wins)
     
 def main():
     initialize_moves()
