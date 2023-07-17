@@ -76,6 +76,7 @@ def initialize_moves():
 
 
 class App(tk.Tk):
+    # TODO once modularization is complete, add gamemode menu
     def __init__(self):
         super().__init__()
         # self.geometry('600x360')
