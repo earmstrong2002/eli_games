@@ -232,6 +232,7 @@ class App(tk.Tk):
             self.frm_move_picker,
             text="SPOCK",
             command=lambda: rps.run_game(SPOCK),
+            cursor="trek",
         )
         btn_spock.grid(column=4, row=0, sticky="nsew")
 
