@@ -19,6 +19,10 @@ class Move:
 
 # instantiates Move objects
 def initialize_moves():
+    """
+    Instantiates all attributes of each of the five instances
+    of the Move dataclass.
+    """
     global ROCK
     global PAPER
     global SCISSORS
@@ -79,6 +83,7 @@ class App(tk.Tk):
         self.make_widgets()
 
     def make_widgets(self):
+        '''Defines and places all widgets'''
         # configure primary frame
         self.frm_main = ttk.Frame(self)
         self.frm_main.columnconfigure(0, weight=1)
@@ -91,6 +96,7 @@ class App(tk.Tk):
         self.make_move_picker()
 
     def make_display(self):
+        '''Defines and places all widgets concerning the display'''
         # configure frame for display
         self.frm_display = ttk.Frame(self.frm_main)
         self.frm_display.columnconfigure(
@@ -134,6 +140,7 @@ class App(tk.Tk):
 
     # Display appropriate images for player and com moves
     def make_graphics(self):
+        '''Defines and places all widgets concerning image graphics'''
         # label for player move
         self.lbl_player_move = ttk.Label(self.frm_display)
         self.lbl_player_move.grid(column=0, row=1)
@@ -142,10 +149,10 @@ class App(tk.Tk):
         self.lbl_com_move = ttk.Label(self.frm_display, text="com")
         self.lbl_com_move.grid(column=2, row=1)
 
-    # change displayed information depending on round outcome
     def update_display(
         self, player_wins, draws, com_wins, victor, player_move, com_move, verb
     ) -> None:
+        '''Update all variable elements of the GUI'''
         self.update_scoreboard(player_wins, draws, com_wins)
         self.display_outcome_message(victor, player_move, com_move, verb)
         self.display_move_textures(player_move, com_move)
@@ -156,6 +163,7 @@ class App(tk.Tk):
     def display_outcome_message(
         self, victor, player_move, com_move, verb
     ) -> None:
+        '''Sets self.outcome_message depending on how the round played out'''
         message = ""
         match victor:
             case "draw":
@@ -171,6 +179,7 @@ class App(tk.Tk):
         self.outcome_message.set(message)
 
     def display_move_textures(self, player_move, com_move) -> None:
+        '''Draws appropriate textures onto lbl_player_move and lbl_com_move'''
         # set texture for player move
         img_player_move = ImageTk.PhotoImage(player_move.texture)
         self.lbl_player_move.configure(image=img_player_move)
@@ -180,9 +189,9 @@ class App(tk.Tk):
         img_com_move = ImageTk.PhotoImage(com_move.texture)
         self.lbl_com_move.configure(image=img_com_move)
         self.lbl_com_move.image = img_com_move
-
-    # change scoreboard values
+        
     def make_move_picker(self):
+        '''Defines and draws all widgets concerning move selection'''
         # configure frame for move picker
         self.frm_move_picker = ttk.LabelFrame(
             self.frm_main, text="Pick Your Move", labelanchor="n"
@@ -226,13 +235,20 @@ class App(tk.Tk):
 
 
 class Rps:
+    '''
+    A semi-modular class for playing rock-paper-scissors variants.
+    Future versions will be fully modular such that any simple variation of
+    rock-paper-scissors can be played with this module.
+    i.e. Any number of moves will be supported and configurable, from
+    ordinary rock-paper-scissors, to the legendary RPS-15
+    '''
     def __init__(self):
         self.player_history = {
             ROCK: 1,
             PAPER: 1,
             SCISSORS: 1,
             LIZARD: 1,
-            SPOCK: 1,
+            SPOCK: 1
         }
         self.player_wins = 0
         self.draws = 0
@@ -243,6 +259,27 @@ class Rps:
     # store confidence list as class attribute and adjust it
     # each round according to player's most recent move
     def com_decide(self) -> Move:
+        '''
+        com_decide's algorithm takes into account all the moves the player
+        has chosen in the current session.
+        We loop through each move and look up how many times the player
+        has played moves that are in move.beats (i.e. moves that beat
+        the move we're looking into in the current iteration of the loop)
+        We store that sum in play_count, then append it to the confidence list.
+        At the end of that, confidence is a list containing integers
+        representing how confident the algorithm is that
+        playing the move with the corresponding index would
+        result in a win, assuming the player continues to
+        favor whichever moves they have been favoring so far.
+        We square each value in the confidence list in order to increase
+        increase the contrast between more and less favorable moves.
+        Finally, we return a random selection from the move list, weighted
+        by our confidence list, such that the computer is more likely
+        to choose a move that is more likely to win.
+        
+        In practice, this algorithm does very little to make the computer win
+        more and I likely won't include it in the final build.
+        '''
         # build map of best options stored in confidence
         confidence = []
         for move in MOVES:
@@ -258,7 +295,9 @@ class Rps:
         return rand.choices(MOVES, weights=confidence, k=1)[0]
 
     def evaluate_victor(self, player_move, com_move):
-        if com_move == player_move:
+        '''Compares player_move and com_move and determines who wins and what
+        verb to use in the outcome message'''
+        if com_move is player_move:
             action = None
             victor = "draw"
         elif com_move in player_move.beats:
@@ -270,6 +309,7 @@ class Rps:
         return victor, action
 
     def increment_scoreboard(self, player_move, victor) -> None:
+        '''Increments values concerning scorekeeping'''
         self.player_history[player_move] += 1
         match victor[0][0]:
             case "p":
@@ -280,6 +320,7 @@ class Rps:
                 self.draws += 1
 
     def run_game(self, player_move):
+        '''Controls flow of the program to execute a full round of rpsls'''
         print(f"player_move = {player_move}")
         com_move = self.com_decide()
         print(f"com_move = {com_move}")
@@ -294,7 +335,7 @@ class Rps:
             victor,
             player_move,
             com_move,
-            verb,
+            verb
         )
 
 
