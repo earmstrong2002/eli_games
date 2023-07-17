@@ -146,7 +146,7 @@ class App(tk.Tk):
         self.lbl_player_move.grid(column=0, row=1)
 
         # label for com move
-        self.lbl_com_move = ttk.Label(self.frm_display, text="com")
+        self.lbl_com_move = ttk.Label(self.frm_display)
         self.lbl_com_move.grid(column=2, row=1)
 
     def update_display(
@@ -325,7 +325,7 @@ class Rps:
         com_move = self.com_decide()
         print(f"com_move = {com_move}")
         victor, verb = self.evaluate_victor(player_move, com_move)
-        print(f"victor = victor")
+        print(f"victor = {victor}")
         print(f"verb = {verb}")
         self.increment_scoreboard(player_move, victor)
         root.update_display(
