@@ -1,7 +1,7 @@
 import random as rand
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image
+from PIL import ImageTk, Image
 from pathlib import Path
 from sys import platform
 
@@ -69,11 +69,9 @@ def initialize_moves():
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.geometry('600x360')
+        # self.geometry('600x360')
         self.title('Play R.P.S.L.S.')
         self.resizable(0, 0) # not resizeable, for simplicity
-        #TODO FINALIZE LAYOUT
-        #TODO incorporate ttk styles
         #TODO add GRAPHICS
         self.make_widgets()
     
@@ -89,24 +87,14 @@ class App(tk.Tk):
         self.make_display()
         self.make_move_picker()
         
-        # establish ttk theme
-        self.default = ttk.Style()
-        #FIXME style is not applied to widgets
-        self.default.theme_settings('default', { 
-            'TButton': {
-                'map': {
-                    'foreground': [('pressed', 'thistle4'),
-                                    ('active', 'thistle1')]
-                }
-            }
-        })
         
     def make_display(self):
         # configure frame for display
         self.frm_display = ttk.Frame(self.frm_main)
-        self.frm_display.columnconfigure((0, 1, 2), weight=1, pad=5)
-        self.frm_display.rowconfigure(0, weight=0, minsize=50, pad=5)
-        self.frm_display.rowconfigure(1, weight=1, pad=5)
+        self.frm_display.columnconfigure((0, 1, 2), weight=1,
+                                         pad=5, minsize=250)
+        self.frm_display.rowconfigure(0, weight=0, minsize=40, pad=5)
+        self.frm_display.rowconfigure(1, weight=1, minsize=250)
         self.frm_display.grid(column=0, row=0, sticky='nsew',)
         
         # scoreboard       
@@ -115,7 +103,8 @@ class App(tk.Tk):
             )
         self.lbl_scoreboard = ttk.Label(
             self.frm_display,
-            textvariable=self.scoreboard
+            textvariable=self.scoreboard,
+            anchor='center'
             )
         self.lbl_scoreboard.grid(column = 1, row=0)
         
@@ -127,16 +116,74 @@ class App(tk.Tk):
         self.lbl_com = ttk.Label(self.frm_display, text='Computer')
         self.lbl_com.grid(column=2, row=0, sticky='w')
         
-        self.make_screen()
-        
-    def make_screen(self):
-        pass #TODO finish screen
+        # outcome message
+        self.outcome_message = tk.StringVar()
+        self.lbl_outcome = ttk.Label(
+            self.frm_display,
+            textvariable=self.outcome_message,
+            anchor='center',
+            width=43
+        )
+        self.lbl_outcome.grid(
+            column=1, row=1,
+            sticky='nsew'
+        )
+        self.make_graphics()
     
-    def increment_scoreboard(self, player_wins, draws, com_wins):
+    # Display appropriate images for player and com moves
+    def make_graphics(self):
+        # label for player move
+        self.lbl_player_move = ttk.Label(self.frm_display)
+        self.lbl_player_move.grid(column=0, row=1)
+        
+        # label for com move
+        self.lbl_com_move = ttk.Label(self.frm_display, text='com')
+        self.lbl_com_move.grid(column=2, row=1)
+    
+    # change displayed information depending on round outcome
+    def update_display(self, player_wins, draws, com_wins, victor,
+                          player_move, com_move, verb) -> None:
+        self.update_scoreboard(player_wins, draws, com_wins)
+        self.display_outcome_message(victor, player_move, com_move, verb)
+        self.display_move_textures(player_move, com_move)
+        
+    def update_scoreboard(self, player_wins, draws, com_wins):
         self.scoreboard.set(
             f'{player_wins} -- {draws} -- {com_wins}'
-            )
+            )   
         
+    def display_outcome_message(self, victor, player_move,
+                                com_move, verb) -> None:
+        message = ''
+        match victor:
+            case 'draw':
+                message = "It's a draw!"
+            case 'player':
+                message = f"Player wins! {player_move.title.capitalize()} "
+                message += f"{verb} {com_move.title.capitalize()}"
+            case 'com':
+                message = f"Computer wins! {com_move.title.capitalize()} "
+                message += f"{verb} {player_move.title.capitalize()}"
+            case _: # something is terribly wrong
+                raise ValueError()
+        self.outcome_message.set(message)
+        
+    def display_move_textures(self, player_move, com_move) -> None:
+        # set texture for player move
+        img_player_move = ImageTk.PhotoImage(player_move.texture)
+        self.lbl_player_move.configure(
+            image=img_player_move
+            )
+        self.lbl_player_move.image = img_player_move
+        
+        # set texture for com move
+        img_com_move = ImageTk.PhotoImage(com_move.texture)
+        self.lbl_com_move.configure(
+            image=img_com_move
+            )
+        self.lbl_com_move.image = img_com_move
+        
+    # change scoreboard values
     def make_move_picker(self):
         # configure frame for move picker
         self.frm_move_picker = ttk.LabelFrame(
@@ -151,19 +198,19 @@ class App(tk.Tk):
         # populate move picker
         #TODO make move button constructor modular
         btn_rock = ttk.Button(self.frm_move_picker, text='ROCK',
-                             command=lambda: run_game(ROCK))
+                             command=lambda: rps.run_game(ROCK))
         btn_rock.grid(column=0, row=0, sticky='nsew')
         btn_paper = ttk.Button(self.frm_move_picker, text='PAPER',
-                              command=lambda: run_game(PAPER))
+                              command=lambda: rps.run_game(PAPER))
         btn_paper.grid(column=1, row=0, sticky='nsew')
         btn_scissors = ttk.Button(self.frm_move_picker, text='SCISSORS',
-                              command=lambda: run_game(SCISSORS))
+                              command=lambda: rps.run_game(SCISSORS))
         btn_scissors.grid(column=2, row=0, sticky='nsew')
         btn_lizard = ttk.Button(self.frm_move_picker, text='LIZARD',
-                              command=lambda: run_game(LIZARD))
+                              command=lambda: rps.run_game(LIZARD))
         btn_lizard.grid(column=3, row=0, sticky='nsew')
         btn_spock = ttk.Button(self.frm_move_picker, text='SPOCK',
-                              command=lambda: run_game(SPOCK))
+                              command=lambda: rps.run_game(SPOCK))
         btn_spock.grid(column=4, row=0, sticky='nsew')
         
 class Rps():
@@ -184,7 +231,7 @@ class Rps():
     # rather than rebuilding confidence list every round,
     # store confidence list as class attribute and adjust it
     # each round according to player's most recent move
-    def com_decide(self): 
+    def com_decide(self) -> Move: 
         # build map of best options stored in confidence
         confidence = []
         for move in MOVES:
@@ -210,26 +257,30 @@ class Rps():
         else: # computer wins
             action = com_move.actions[com_move.beats.index(player_move)]
             victor = 'com'
-        return (victor, action)
+        return victor, action
     
-    def increment_scoreboard(self, player_move, victor):
+    def increment_scoreboard(self, player_move, victor) -> None:
         self.player_history[player_move] += 1
         match victor[0][0]:
             case 'p': self.player_wins += 1
             case 'c': self.com_wins += 1
             case 'd': self.draws += 1
 
-def run_game(player_move):
-    print(player_move)
-    com_move = rps.com_decide()
-    print(com_move)
-    victor = rps.evaluate_victor(player_move, com_move)
-    print(victor)
-    rps.increment_scoreboard(player_move, victor)
-    root.increment_scoreboard(rps.player_wins, rps.draws, rps.com_wins)
-    
+    def run_game(self, player_move):
+        print(f'player_move = {player_move}')
+        com_move = self.com_decide()
+        print(f'com_move = {com_move}')
+        victor, verb = self.evaluate_victor(player_move, com_move)
+        print(f'victor = victor')
+        print(f'verb = {verb}')
+        self.increment_scoreboard(player_move, victor)
+        root.update_display(self.player_wins, self.draws, self.com_wins,
+                            victor, player_move, com_move, verb)
+        
 def main():
     initialize_moves()
+    for move in MOVES:
+        print(move.texture.filename)
     global rps
     global root
     rps = Rps()
