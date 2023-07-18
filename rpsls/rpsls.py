@@ -4,13 +4,13 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 from pathlib import Path
 from sys import platform
+import json
 
 
 class Move:
-    def __init__(self, title, beats=None, actions=None, texture=None):
+    def __init__(self, title, beats=None, texture=None):
         self.beats = beats
         self.title = title
-        self.actions = actions
         self.texture = texture
 
     def __str__(self):
@@ -18,61 +18,50 @@ class Move:
 
 
 # instantiates Move objects
-def initialize_moves():
-    """
-    Instantiates all attributes of each of the five instances
-    of the Move dataclass.
-    """
-    # TODO Modularize Move instantiation
-    global ROCK
-    global PAPER
-    global SCISSORS
-    global LIZARD
-    global SPOCK
-    global MOVES
+def initialize_moves(gamemode: str = "rpsls") -> list:
+    """Instantiates all attributes of all moves from move_config.json"""
 
-    ROCK = Move("rock")
-    PAPER = Move("paper")
-    SCISSORS = Move("scissors")
-    LIZARD = Move("lizard")
-    SPOCK = Move("spock")
+    # read move properties form move_config.json
+    with open("rpsls/move_config.json", "r") as cfg:
+        move_dict = json.load(cfg)[gamemode]
 
-    # list for iterating through all moves
-    MOVES = [ROCK, PAPER, SCISSORS, LIZARD, SPOCK]
+    moves = instantiate_moves(move_dict.keys())
+    move_key = build_move_key(moves)
 
-    # defining which moves each move beats
-    # TODO change beats to dict combined with actions
-    ROCK.beats = (SCISSORS, LIZARD)
-    PAPER.beats = (ROCK, SPOCK)
-    SCISSORS.beats = (PAPER, LIZARD)
-    LIZARD.beats = (PAPER, SPOCK)
-    SPOCK.beats = (ROCK, SCISSORS)
+    # populate move.beats attributes
+    for move in moves:
+        move.beats = generate_beats_dict(move, move_dict[move.title], move_key)
 
-    # defining what verb to use when each move beats each other move
-    ROCK.actions = ("crushes", "crushes")
-    PAPER.actions = ("covers", "disproves")
-    SCISSORS.actions = ("cuts", "decapitates")
-    LIZARD.actions = ("eats", "poisons")
-    SPOCK.actions = ("vaporizes", "smashes")
+    # TODO fetch and assign textures
 
-    # get file directories for associated move textures
-    pths_textures = list(Path("rpsls/textures/").glob("*"))
-    strs_textures = []
-    for pth in pths_textures:  # convert path objects to strings for processing
-        strs_textures.append(str(pth))
-    if platform.startswith("win"):  # replace \ with / for compatability
-        for i in range(len(strs_textures)):
-            strs_textures[i] = strs_textures[i].replace("\\", "/")
 
-    filenames_textures = []
-    for pth in strs_textures:  # isolate file name, without extension
-        im_name = pth.split("/")[-1][:-4]
-        filenames_textures.append(im_name)
+def generate_beats_dict(
+    move: Move, str_dict_beats: dict, move_key: dict
+) -> dict:
+    """str_dict keys are move titles as str.
+    This function replaces the str with appropriate move object"""
+    beats = {}
+    for item in str_dict_beats.items():
+        obj = move_key[item[0]]
+        beats[obj] = item[1]
+    return beats
 
-    # assign textures to appropriate move objects
-    for move in MOVES:
-        index = filenames_textures.index(move.title)
-        move.texture = Image.open(pths_textures[index])
+
+def build_move_key(moves: list) -> dict:
+    """Returns dict; keys are move titles as str, values are Move objects."""
+    move_key = {}
+    for move in moves:
+        move_key[move.title] = move
+    return move_key
+
+
+def instantiate_moves(move_strs: list) -> list:
+    """Returns list of move objects for all moves in move_strs"""
+    moves = []
+    for move in move_strs:
+        exec(f"{move} = Move(title='{move}')")
+        exec(f"moves.append({move})")
+    return moves
 
 
 class App(tk.Tk):
@@ -102,10 +91,10 @@ class App(tk.Tk):
         # configure frame for display
         self.frm_display = ttk.Frame(self.frm_main)
         self.frm_display.columnconfigure(
-            (0, 1, 2), weight=1, pad=5, minsize=250
+            (0, 1, 2), weight=1, pad=5, minsize=260
         )
         self.frm_display.rowconfigure(0, weight=0, minsize=40, pad=5)
-        self.frm_display.rowconfigure(1, weight=1, minsize=250)
+        self.frm_display.rowconfigure(1, weight=1, minsize=260)
         self.frm_display.grid(
             column=0,
             row=0,
@@ -203,7 +192,7 @@ class App(tk.Tk):
         self.frm_move_picker.grid(column=0, row=1, sticky="nsew")
 
         # populate move picker
-        # TODO make move button constructor modular
+        # TODO modularize move button constructor
         btn_rock = ttk.Button(
             self.frm_move_picker,
             text="ROCK",
@@ -284,7 +273,7 @@ class Rps:
             action = None
             victor = "draw"
         elif com_move in player_move.beats:
-            action = player_move.actions[player_move.beats.index(com_move)]
+            action = player_move.beats[com_move]
             victor = "player"
         else:  # computer wins
             action = com_move.actions[com_move.beats.index(player_move)]
@@ -328,9 +317,7 @@ class Rps:
 
 
 def main():
-    initialize_moves()
-    for move in MOVES:
-        print(move.texture.filename)
+    moves = initialize_moves()
     global rps
     global root
     rps = Rps()

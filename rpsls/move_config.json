@@ -1,0 +1,37 @@
+{
+    "rps": {
+        "moves": {
+            "rock": {
+                "scissors": "crushes"
+            },
+            "paper": {
+                "rock": "covers"
+            },
+            "scissors": {
+                "paper": "cuts"
+            }
+        }
+    },
+    "rpsls": {
+        "rock": {
+            "scissors": "crushes",
+            "lizard": "crushes"
+        },
+        "paper": {
+            "rock": "covers",
+            "spock": "disproves"
+        },
+        "scissors": {
+            "paper": "cuts",
+            "lizard": "decapitates"
+        },
+        "lizard": {
+            "paper": "eats",
+            "spock": "poisons"
+        },
+        "spock": {
+            "rock": "vaporizes",
+            "scissors": "smashes"
+        }
+    }
+}
