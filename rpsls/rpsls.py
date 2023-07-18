@@ -309,12 +309,8 @@ class Rps:
 
     def run_game(self, player_move):
         """Controls flow of the program to execute a full round of rpsls"""
-        print(f"player_move = {player_move}")
         com_move = self.com_decide(player_move)
-        print(f"com_move = {com_move}")
         victor, verb = self.evaluate_victor(player_move, com_move)
-        print(f"victor = {victor}")
-        print(f"verb = {verb}")
         self.increment_scoreboard(victor, player_move)
         root.update_display(
             self.player_wins,
@@ -329,8 +325,6 @@ class Rps:
 
 def main():
     initialize_moves()
-    for move in MOVES:
-        print(move.texture.filename)
     global rps
     global root
     rps = Rps()
