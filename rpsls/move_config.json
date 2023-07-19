@@ -1,18 +1,18 @@
 {
     "rps": {
-        "moves": {
-            "rock": {
-                "scissors": "crushes"
-            },
-            "paper": {
-                "rock": "covers"
-            },
-            "scissors": {
-                "paper": "cuts"
-            }
+        "has_textures": true,
+        "rock": {
+            "scissors": "crushes"
+        },
+        "paper": {
+            "rock": "covers"
+        },
+        "scissors": {
+            "paper": "cuts"
         }
-    },
+        },
     "rpsls": {
+        "has_textures": true,
         "rock": {
             "scissors": "crushes",
             "lizard": "crushes"
@@ -32,6 +32,144 @@
         "spock": {
             "rock": "vaporizes",
             "scissors": "smashes"
+        }
+    },
+    "rps_15": {
+        "has_textures": false,
+        "rock": {
+            "fire": "pounds out",
+            "scissors": "crushes",
+            "snake": "crushes",
+            "human": "crushes",
+            "wolf": "crushes",
+            "sponge": "crushes",
+            "tree": "blocks"
+        },
+        "fire": {
+            "scissors": "melts",
+            "paper": "burns",
+            "snake": "burns",
+            "human": "burns",
+            "tree": "burns",
+            "wolf": "burns",
+            "sponge": "burns"
+        },
+        "scissors": {
+            "air": "swish through",
+            "tree": "carve",
+            "paper": "cut",
+            "snake": "cut",
+            "human": "cut",
+            "wolf": "cut",
+            "sponge": "cut"
+        },
+        "snake": {
+            "human": "bites",
+            "wolf": "bites",
+            "sponge": "swallows",
+            "tree": "nests in",
+            "paper": "nests in",
+            "air": "breathes",
+            "water": "drinks"
+        },
+        "human": {
+            "tree": "plants",
+            "wolf": "tames",
+            "sponge": "cleans with",
+            "paper": "writes on",
+            "air": "breathes",
+            "water": "drinks",
+            "dragon": "slays"
+        },
+        "tree": {
+            "wolf": "shelters",
+            "dragon": "shelters",
+            "sponge": "outlives",
+            "paper": "becomes",
+            "air": "produces",
+            "water": "drinks",
+            "devil": "imprisons"
+        },
+        "wolf": {
+            "sponge": "chews up",
+            "paper": "chews up",
+            "air": "breathes",
+            "water": "drinks",
+            "dragon": "outruns",
+            "lightning": "outruns",
+            "devil": "bites"
+        },
+        "sponge": {
+            "paper": "soaks",
+            "air": "uses pockets of",
+            "water": "absorbs",
+            "devil": "cleanses",
+            "dragon": "cleanses",
+            "gun": "cleans",
+            "lightning": "conducts"
+        },
+        "paper": {
+            "air": "fans",
+            "rock": "covers",
+            "water": "floats on",
+            "devil": "rebukes",
+            "dragon": "rebukes",
+            "gun": "outlaws",
+            "lightning": "defines"
+        },
+        "air": {
+            "fire": "blows out",
+            "rock": "erodes",
+            "water": "evaporates",
+            "devil": "chokes",
+            "gun": "tarnishes",
+            "dragon": "freezes",
+            "lightning": "creates"
+        },
+        "water": {
+            "devil": "drowns",
+            "dragon": "drowns",
+            "rock": "erodes",
+            "fire": "puts out",
+            "scissors": "rusts",
+            "gun": "rusts",
+            "lightning": "conducts"
+        },
+        "dragon": {
+            "devil": "commands",
+            "lightning": "breathes",
+            "fire": "breathes",
+            "rock": "rests on",
+            "scissors": "is immune to",
+            "gun": "is immune to",
+            "snake": "spawns"
+        },
+        "devil": {
+            "rock": "hurls",
+            "fire": "breathes",
+            "scissors": "is immune to",
+            "gun": "is immune to",
+            "lightning": "casts",
+            "snake": "eats",
+            "human": "possesses"
+        },
+        "lightning": {
+            "gun": "melts",
+            "scissors": "melts",
+            "rock": "splits",
+            "tree": "splits",
+            "fire": "starts",
+            "snake": "strikes",
+            "human": "strikes"
+        },
+        "gun": {
+            "rock": "targets",
+            "tree": "targets",
+            "fire": "uses",
+            "scissors": "outclasses",
+            "snake": "shoots",
+            "human": "shoots",
+            "wolf": "shoots"
         }
     }
 }

@@ -3,7 +3,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
 from pathlib import Path
-from sys import platform
 import json
 
 
@@ -18,21 +17,42 @@ class Move:
 
 
 # instantiates Move objects
-def initialize_moves(gamemode: str = "rpsls") -> list:
+def initialize_moves(gamemode: str = "rpsls") -> None:
     """Instantiates all attributes of all moves from move_config.json"""
 
     # read move properties form move_config.json
     with open("rpsls/move_config.json", "r") as cfg:
         move_dict = json.load(cfg)[gamemode]
 
-    moves = instantiate_moves(move_dict.keys())
-    move_key = build_move_key(moves)
+    global MOVES  # list of Move objects for global access
+    MOVES = instantiate_moves(list(move_dict.keys())[1:])
+    move_key = build_move_key(MOVES)
 
     # populate move.beats attributes
-    for move in moves:
+    for move in MOVES:
         move.beats = generate_beats_dict(move, move_dict[move.title], move_key)
 
-    # TODO fetch and assign textures
+    # populate move.texture attributes
+    if move_dict["has_textures"] == True:
+        textures = fetch_textures(move_key, gamemode)
+        for move in MOVES:
+            move.texture = textures[move]
+
+
+def fetch_textures(move_key: dict, gamemode: str) -> dict:
+    """Searches dir for textures for all moves,
+    creates Image object of each texture,
+    returns dict; keys are Move objects, values are Image objects.
+    """
+    pths_textures = list(Path(f"rpsls/textures/{gamemode}").glob("*.png"))
+    textures = {}
+    for path in pths_textures:
+        # generate Image object with path
+        img = Image.open(path)
+        # add corresponding move object to textures with Image object as value
+        textures[move_key[path.stem]] = img
+
+    return textures
 
 
 def generate_beats_dict(
@@ -44,6 +64,7 @@ def generate_beats_dict(
     for item in str_dict_beats.items():
         obj = move_key[item[0]]
         beats[obj] = item[1]
+
     return beats
 
 
@@ -52,6 +73,7 @@ def build_move_key(moves: list) -> dict:
     move_key = {}
     for move in moves:
         move_key[move.title] = move
+
     return move_key
 
 
@@ -61,6 +83,7 @@ def instantiate_moves(move_strs: list) -> list:
     for move in move_strs:
         exec(f"{move} = Move(title='{move}')")
         exec(f"moves.append({move})")
+
     return moves
 
 
@@ -73,7 +96,7 @@ class App(tk.Tk):
         self.resizable(0, 0)  # not resizeable, for simplicity
         self.make_widgets()
 
-    def make_widgets(self):
+    def make_widgets(self) -> None:
         """Defines and places all widgets"""
         # configure primary frame
         self.frm_main = ttk.Frame(self)
@@ -86,7 +109,7 @@ class App(tk.Tk):
         self.make_display()
         self.make_move_picker()
 
-    def make_display(self):
+    def make_display(self) -> None:
         """Defines and places all widgets concerning the display"""
         # configure frame for display
         self.frm_display = ttk.Frame(self.frm_main)
@@ -188,42 +211,17 @@ class App(tk.Tk):
             self.frm_main, text="Pick Your Move", labelanchor="n"
         )
         self.frm_move_picker.rowconfigure(0, weight=1, pad=5)
-        self.frm_move_picker.columnconfigure((0, 1, 2, 3, 4), weight=1, pad=5)
         self.frm_move_picker.grid(column=0, row=1, sticky="nsew")
 
         # populate move picker
-        # TODO modularize move button constructor
-        btn_rock = ttk.Button(
-            self.frm_move_picker,
-            text="ROCK",
-            command=lambda: rps.run_game(ROCK),
-        )
-        btn_rock.grid(column=0, row=0, sticky="nsew")
-        btn_paper = ttk.Button(
-            self.frm_move_picker,
-            text="PAPER",
-            command=lambda: rps.run_game(PAPER),
-        )
-        btn_paper.grid(column=1, row=0, sticky="nsew")
-        btn_scissors = ttk.Button(
-            self.frm_move_picker,
-            text="SCISSORS",
-            command=lambda: rps.run_game(SCISSORS),
-        )
-        btn_scissors.grid(column=2, row=0, sticky="nsew")
-        btn_lizard = ttk.Button(
-            self.frm_move_picker,
-            text="LIZARD",
-            command=lambda: rps.run_game(LIZARD),
-        )
-        btn_lizard.grid(column=3, row=0, sticky="nsew")
-        btn_spock = ttk.Button(
-            self.frm_move_picker,
-            text="SPOCK",
-            command=lambda: rps.run_game(SPOCK),
-            cursor="trek",
-        )
-        btn_spock.grid(column=4, row=0, sticky="nsew")
+        for move in MOVES:
+            btn = f"btn_{move.title}"
+            index = MOVES.index(move)
+            self.frm_move_picker.columnconfigure(index, weight=1, pad=5)
+            exec(f"{btn} = ttk.Button(self.frm_move_picker)")
+            exec(f"{btn}['text'] = '{move.title.upper()}'")
+            exec(f"{btn}['command'] = lambda: rps.run_game(MOVES[{index}])")
+            exec(f"{btn}.grid(column = {index}, row=0, sticky='nsew')")
 
 
 class Rps:
@@ -239,13 +237,9 @@ class Rps:
         self.player_wins = 0
         self.draws = 0
         self.com_wins = 0
-        self.com_confidence = {  # used for deciding com move
-            ROCK: 1,
-            PAPER: 1,
-            SCISSORS: 1,
-            LIZARD: 1,
-            SPOCK: 1,
-        }
+        self.com_confidence = {}  # used for deciding com move
+        for move in MOVES:
+            self.com_confidence[move] = 1
 
     def com_decide(self, player_move) -> Move:
         """
@@ -276,7 +270,7 @@ class Rps:
             action = player_move.beats[com_move]
             victor = "player"
         else:  # computer wins
-            action = com_move.actions[com_move.beats.index(player_move)]
+            action = com_move.beats[player_move]
             victor = "com"
         return victor, action
 
@@ -317,7 +311,9 @@ class Rps:
 
 
 def main():
-    moves = initialize_moves()
+    # TODO gamemode picker
+    # TODO gamemode maker
+    initialize_moves("rps_15")
     global rps
     global root
     rps = Rps()
