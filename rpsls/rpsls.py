@@ -5,7 +5,6 @@ from PIL import ImageTk, Image
 from pathlib import Path
 from sys import platform
 
-
 class Move:
     def __init__(self, title, beats=None, actions=None, texture=None):
         self.beats = beats
