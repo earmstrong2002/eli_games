@@ -17,20 +17,17 @@ class Move:
 
 
 # instantiates Move objects
-def initialize_moves() -> None:
+def initialize_moves(gamemode: str) -> None:
     """Instantiates all attributes of all moves from move_config.json"""
 
     # read move properties form move_config.json
     with open("rpsls/move_config.json", "r") as cfg:
-        big_dict = json.load(cfg)
-        print("Gamemode options:")
-        gamemode_list = list(big_dict.keys())
-        print(gamemode_list)
-        gamemode = input("Select gamemode: ")
-        move_dict = big_dict[gamemode]
+        global MOVE_CONFIG
+        MOVE_CONFIG = json.load(cfg)
+        move_dict = MOVE_CONFIG[gamemode]["moves"]
 
     global MOVES  # list of Move objects for global access
-    MOVES = instantiate_moves(list(move_dict.keys())[1:])
+    MOVES = instantiate_moves(list(move_dict.keys()))
     move_key = build_move_key(MOVES)
 
     # populate move.beats attributes
@@ -38,7 +35,7 @@ def initialize_moves() -> None:
         move.beats = generate_beats_dict(move, move_dict[move.title], move_key)
 
     # populate move.texture attributes
-    if move_dict["has_textures"] == True:
+    if MOVE_CONFIG[gamemode]["has_textures"] == True:
         textures = fetch_textures(move_key, gamemode)
         for move in MOVES:
             move.texture = textures[move]
@@ -93,26 +90,52 @@ def instantiate_moves(move_strs: list) -> list:
 
 
 class App(tk.Tk):
-    # TODO once modularization is complete, add gamemode menu
     def __init__(self):
         super().__init__()
-        # self.geometry('600x360')
+        # set icon image
+        with Image.open("rpsls/icon.png") as icon:
+            icon.resize((16, 16))
+            photo = ImageTk.PhotoImage(icon)
+            self.wm_iconphoto(True, photo)
+
         self.title("Play R.P.S.L.S.")
         self.resizable(0, 0)  # not resizeable, for simplicity
         self.make_widgets()
 
     def make_widgets(self) -> None:
         """Defines and places all widgets"""
+        # make menu bar
+        self.make_menubar()
+        self.config(menu=self.menubar)
         # configure primary frame
         self.frm_main = ttk.Frame(self)
         self.frm_main.columnconfigure(0, weight=1)
         self.frm_main.rowconfigure(0, weight=1)
         self.frm_main.rowconfigure(1, weight=0, minsize=60)
         self.frm_main.pack(fill="both", expand=True)
-
         # populate with elements
         self.make_display()
         self.make_move_picker()
+
+    def make_menubar(self):
+        self.menubar = tk.Menu(self)
+        self.mnu_gamemode = tk.Menu(self.menubar, tearoff=0)
+        self.mnu_gamemode_select = tk.Menu(self.mnu_gamemode, tearoff=0)
+        for gamemode in MOVE_CONFIG.items():
+            gm_alias = gamemode[1]["alias"]
+            exec(
+                f"self.mnu_gamemode_select.add_command(label='{gm_alias}', command=lambda: print('{gm_alias}'))"
+            )
+            # TODO create command for switching gamemodes
+            # you'll have to refactor the code such that class Rps
+            # is instantiated within App and
+            # gamemode var is passed into the constructor
+            # and initialize_moves should be called from Rps
+        self.mnu_gamemode.add_cascade(
+            label="Select gamemode", menu=self.mnu_gamemode_select
+        )
+        self.mnu_gamemode.add_command(label="Create custom gamemode")
+        self.menubar.add_cascade(label="Gamemode", menu=self.mnu_gamemode)
 
     def make_display(self) -> None:
         """Defines and places all widgets concerning the display"""
@@ -319,7 +342,6 @@ class Rps:
 
 
 def main():
-    # TODO gamemode picker
     # TODO gamemode maker
     initialize_moves()
     global rps
