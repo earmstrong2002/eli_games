@@ -17,12 +17,17 @@ class Move:
 
 
 # instantiates Move objects
-def initialize_moves(gamemode: str = "rpsls") -> None:
+def initialize_moves() -> None:
     """Instantiates all attributes of all moves from move_config.json"""
 
     # read move properties form move_config.json
     with open("rpsls/move_config.json", "r") as cfg:
-        move_dict = json.load(cfg)[gamemode]
+        big_dict = json.load(cfg)
+        print("Gamemode options:")
+        gamemode_list = list(big_dict.keys())
+        print(gamemode_list)
+        gamemode = input("Select gamemode: ")
+        move_dict = big_dict[gamemode]
 
     global MOVES  # list of Move objects for global access
     MOVES = instantiate_moves(list(move_dict.keys())[1:])
@@ -168,15 +173,15 @@ class App(tk.Tk):
     ) -> None:
         """Update all variable elements of the GUI"""
         self.update_scoreboard(player_wins, draws, com_wins)
-        self.display_outcome_message(victor, player_move, com_move, verb)
+        self.outcome_message.set(
+            self.message(victor, player_move, com_move, verb)
+        )
         self.display_move_textures(player_move, com_move)
 
     def update_scoreboard(self, player_wins, draws, com_wins):
         self.scoreboard.set(f"{player_wins} -- {draws} -- {com_wins}")
 
-    def display_outcome_message(
-        self, victor, player_move, com_move, verb
-    ) -> None:
+    def message(self, victor, player_move, com_move, verb) -> None:
         """Sets self.outcome_message depending on how the round played out"""
         message = ""
         match victor:
@@ -190,19 +195,22 @@ class App(tk.Tk):
                 message += f"{verb} {player_move.title.capitalize()}"
             case _:  # something is terribly wrong
                 raise ValueError()
-        self.outcome_message.set(message)
+        return message
 
     def display_move_textures(self, player_move, com_move) -> None:
         """Draws appropriate textures onto lbl_player_move and lbl_com_move"""
         # set texture for player move
-        img_player_move = ImageTk.PhotoImage(player_move.texture)
-        self.lbl_player_move.configure(image=img_player_move)
-        self.lbl_player_move.image = img_player_move
+        try:
+            img_player_move = ImageTk.PhotoImage(player_move.texture)
+            self.lbl_player_move.configure(image=img_player_move)
+            self.lbl_player_move.image = img_player_move
 
-        # set texture for com move
-        img_com_move = ImageTk.PhotoImage(com_move.texture)
-        self.lbl_com_move.configure(image=img_com_move)
-        self.lbl_com_move.image = img_com_move
+            # set texture for com move
+            img_com_move = ImageTk.PhotoImage(com_move.texture)
+            self.lbl_com_move.configure(image=img_com_move)
+            self.lbl_com_move.image = img_com_move
+        except KeyError:
+            pass  # swallow error to allow gamemodes with no textures
 
     def make_move_picker(self):
         """Defines and draws all widgets concerning move selection"""
@@ -313,7 +321,7 @@ class Rps:
 def main():
     # TODO gamemode picker
     # TODO gamemode maker
-    initialize_moves("rps_15")
+    initialize_moves()
     global rps
     global root
     rps = Rps()
