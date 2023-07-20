@@ -17,13 +17,14 @@ class Move:
 
 
 # instantiates Move objects
-def initialize_moves(gamemode: str) -> None:
+def initialize_moves() -> None:
     """Instantiates all attributes of all moves from move_config.json"""
 
     # read move properties form move_config.json
     with open("rpsls/move_config.json", "r") as cfg:
         global MOVE_CONFIG
         MOVE_CONFIG = json.load(cfg)
+        gamemode = "rpsls"
         move_dict = MOVE_CONFIG[gamemode]["moves"]
 
     global MOVES  # list of Move objects for global access

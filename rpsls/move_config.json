@@ -41,7 +41,7 @@
         }
     },
     "rps_15": {
-        "alias": "R.P.S.-15",
+        "alias": "RPS-15",
         "has_textures": false,
         "moves": {
             "rock": {
