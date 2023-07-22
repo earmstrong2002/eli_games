@@ -2,8 +2,8 @@
     "default_gamemode": "rpsls",
     "gamemodes": {
         "rps": {
+            "title": "rps",
             "alias": "Rock, Paper, Scissors",
-            "has_textures": true,
             "moves": {
                 "rock": {
                     "scissors": "crushes"
@@ -17,8 +17,8 @@
             }
         },
         "rpsls": {
+            "title": "rps",
             "alias": "Rock, Paper, Scissors, Lizard, Spock",
-            "has_textures": true,
             "moves": {
                 "rock": {
                     "scissors": "crushes",
@@ -43,8 +43,8 @@
             }
         },
         "rps_15": {
+            "title": "rps",
             "alias": "RPS-15",
-            "has_textures": false,
             "moves": {
                 "rock": {
                     "fire": "pounds out",

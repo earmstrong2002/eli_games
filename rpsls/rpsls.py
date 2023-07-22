@@ -23,7 +23,7 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 from pathlib import Path
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
@@ -31,7 +31,8 @@ HERE = Path(__file__).parent.absolute()  # absolute path of current file
 
 @dataclass
 class Move:
-    """Stores info relavent to Rps operations.
+    """
+    Stores info relavent to Rps operations.
     - title stores move's name as str
     - beats stores dict[Move: str];
         - keys are moves that are beaten by self
@@ -44,17 +45,81 @@ class Move:
         - size: 250x250
     """
 
-    title: str
-    beats: dict
-    texture: Image
-
-
-# TODO create gamemode dataclass to be passed into Rps initializer
+    title: str = field(default="<unnamed>", frozen=True)
+    beats: dict = field(default_factory=dict)
+    texture: Image = None
 
 
 class Rps:
     """A class that serves as a game engine
     for variants of rock, paper, scissors."""
+
+    def __init__(self, gamemode: dict):
+        self.gamemode = gamemode["title"]
+        self.alias = gamemode["alias"]
+        self.moves = self.initialize_moves(gamemode["moves"])
+
+    def _initialize_moves(self, move_dict: dict) -> list[Move]:
+        """Creates and configures Move object for each move in move_list"""
+        moves = self._instantiate_moves(move_dict)
+        move_key = self._build_move_key(moves, move_dict)
+        # TODO refactor to only work with move_key beyond this point
+        # Populate Move object attributes
+        moves = self._populate_beats(move_dict, move_key)
+        moves = self._populate_textures(move_key)
+        return moves
+
+    def _instantiate_moves(self, move_list: dict) -> list[Move]:
+        """
+        Instantiates Move object for each move in move_list.
+        Move objects are "naked" because they have only title. No other data.
+        """
+        naked_moves = []
+        for move in move_list:
+            exec(f"{move} = Move(title='{move}')")
+            exec(f"naked_moves.append({move})")
+        return naked_moves
+
+    def _build_move_key(
+        self, moves: list(Move), move_dict: dict
+    ) -> dict[str, Move]:
+        """Returns dict for locating Move object with given title"""
+        move_key = {}
+        for move in moves:
+            move_key[move.title] = move
+        return move_key
+
+    def _populate_beats(
+        self, moves: list(Move), move_dict: dict, move_key: dict[str, Move]
+    ) -> list(Move):
+        """
+        beats keys are move titles as str which the move beats.
+        _build_beats replaces str with corresponding Move object.
+        """
+        for move in moves:
+            beats = {}
+            # locate relevant data in move_dict
+            unformatted_beats = move_dict[move.title]
+            for key in unformatted_beats:
+                # locate Move corresponding Move object
+                move = move_key[key]
+                # add Move object and verb to beats
+                beats[move] = unformatted_beats[key]
+            move.beats = beats
+        return moves
+
+    def _populate_textures(
+        self, moves: list[Move], move_key: dict[str, Move]
+    ) -> list(Move):
+        pths_textures = list(
+            Path(HERE / "textures" / self.gamemode).glob("*.png")
+        )
+        for path in pths_textures:
+            # instantiate Image object with path
+            img = Image.open(path)
+            # locate corresponding Move object in moves
+            move_key
+        return moves
 
 
 class App(tk.Frame):
@@ -62,12 +127,12 @@ class App(tk.Frame):
     stored in the Rps engine passed App's initializer"""
 
 
-def make_root(move_config: dict) -> None:
+def make_root(move_config: dict, default_gamemode: str) -> None:
     """Instantiates and configures root window with menu bar."""
     global root
     root = tk.Tk()
 
-    configure_root_window(move_config, move_config["default_gamemode"])
+    configure_root_window(move_config, default_gamemode)
     make_menu_bar(move_config["gamemodes"])
 
 
@@ -83,7 +148,8 @@ def make_menu_bar(gamemodes: str) -> None:
 
 
 def make_mnu_gamemodes(master, gamemodes: list) -> tk.Menu:
-    """Creates tkinter menu for switching gamemodes.
+    """
+    Creates tkinter menu for switching gamemodes.
     The returned menu has one command per gamemode in gamemodes;
     each command calls change_gammeode and passes it
     the appropriate gamemode.
@@ -110,8 +176,8 @@ def configure_root_window(move_config, gamemode) -> None:
 
 def start_game(gamemode: str) -> None:
     """Instantiates Rps engine and App frame with given gamemode."""
-    instantiate_rps(gamemode)
-    instantiate_app(gamemode)
+    rps = Rps(gamemode)
+    app = App(rps)
 
 
 def instantiate_rps(gamemode: str) -> Rps:
@@ -123,7 +189,8 @@ def instantiate_app(engine: Rps) -> App:
 
 
 def change_gamemode(gamemode: str) -> None:
-    """Changes gamemode by destroying currently active instances of
+    """
+    Changes gamemode by destroying currently active instances of
     Rps and App and reinstantiating them with the given gamemode.
     """
 
@@ -131,7 +198,9 @@ def change_gamemode(gamemode: str) -> None:
 def main():
     with open(HERE / "move_config.json") as cfg:
         move_config = json.load(cfg)  # config dict
-    make_root(move_config)
+    default_gamemode = move_config["default_gamemode"]
+    make_root(move_config, default_gamemode)
+    start_game(default_gamemode)
     root.mainloop()
 
 
