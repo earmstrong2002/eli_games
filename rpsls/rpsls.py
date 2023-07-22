@@ -17,7 +17,7 @@ Intended Structure:
 """
 
 
-import random as rand
+from random import choices as randchoices
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -58,7 +58,20 @@ class Rps:
     def __init__(self, gamemode: dict):
         self.gamemode = gamemode["title"]
         self.alias = gamemode["alias"]
-        self.moves = self.initialize_moves(gamemode["moves"])
+        self.moves = self._initialize_moves(gamemode["moves"])
+        self.score = {
+            "wins": 0,
+            "draws": 0,
+            "losses": 0
+        }
+        self.com_confidence = self._initialize_com_confidence()
+        
+    def _initialize_com_confidence(self) -> dict[Move, int]:
+        """Creates com_confidence dict. All values are initialized to 1."""
+        com_confidence = {}
+        for move in self.moves:
+            com_confidence[move] = 1
+        return com_confidence
 
     def _initialize_moves(self, move_dict: dict) -> list[Move]:
         """Creates and configures Move object for each move in move_list"""
@@ -130,11 +143,15 @@ class Rps:
             move_index = moves.index(current_move)
             moves[move_index].texture = img
         return moves
-
+    
+    
+    def run_game(self, player_move: Move) -> None:
+        """Controls the flow of game."""
+        # TODO contemplate improvements to be made to Rps.run_game
 
 class App(tk.Frame):
     """App dynamically generates a GUI based on the gamemode information
-    stored in the Rps engine passed App's initializer"""
+    stored in the Rps engine passed App's initializer."""
 
 
 def make_root(move_config: dict, default_gamemode: str) -> None:
