@@ -1,10 +1,6 @@
-import json
-from pathlib import Path
+mylist = [14, 17, 15]
 
-HERE = Path(__file__).parent.absolute()  # absolute path of current file
+mylist[mylist.index(17)] = 21
 
-with open(HERE / "move_config.json") as cfg:
-    move_config = json.load(cfg)
 
-for move in move_config["gamemodes"]["rpsls"]["moves"].items():
-    print(move)
+print(mylist)

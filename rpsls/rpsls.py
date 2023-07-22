@@ -24,6 +24,7 @@ from PIL import ImageTk, Image
 from pathlib import Path
 import json
 from dataclasses import dataclass, field
+import os
 
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
@@ -62,11 +63,10 @@ class Rps:
     def _initialize_moves(self, move_dict: dict) -> list[Move]:
         """Creates and configures Move object for each move in move_list"""
         moves = self._instantiate_moves(move_dict)
-        move_key = self._build_move_key(moves, move_dict)
-        # TODO refactor to only work with move_key beyond this point
+        move_key = self._build_move_key(moves)
         # Populate Move object attributes
-        moves = self._populate_beats(move_dict, move_key)
-        moves = self._populate_textures(move_key)
+        moves = self._populate_beats(moves, move_key, move_dict)
+        moves = self._populate_textures(moves, move_key)
         return moves
 
     def _instantiate_moves(self, move_list: dict) -> list[Move]:
@@ -80,9 +80,7 @@ class Rps:
             exec(f"naked_moves.append({move})")
         return naked_moves
 
-    def _build_move_key(
-        self, moves: list(Move), move_dict: dict
-    ) -> dict[str, Move]:
+    def _build_move_key(self, moves: list[Move]) -> dict[str, Move]:
         """Returns dict for locating Move object with given title"""
         move_key = {}
         for move in moves:
@@ -90,12 +88,9 @@ class Rps:
         return move_key
 
     def _populate_beats(
-        self, moves: list(Move), move_dict: dict, move_key: dict[str, Move]
-    ) -> list(Move):
-        """
-        beats keys are move titles as str which the move beats.
-        _build_beats replaces str with corresponding Move object.
-        """
+        self, moves: list[Move], move_key: dict[str, Move], move_dict: dict
+    ) -> dict[str, Move]:
+        """Assigns beats attribute to all moves in move_key."""
         for move in moves:
             beats = {}
             # locate relevant data in move_dict
@@ -110,15 +105,30 @@ class Rps:
 
     def _populate_textures(
         self, moves: list[Move], move_key: dict[str, Move]
-    ) -> list(Move):
+    ) -> dict[str, Move]:
+        """
+        Assigns texture attribute to Move objects.
+        Note: All textures present in gamemode's texture folder
+        will be processed, not necessarily every move
+        in the gamemode.
+        """
         pths_textures = list(
             Path(HERE / "textures" / self.gamemode).glob("*.png")
         )
         for path in pths_textures:
             # instantiate Image object with path
             img = Image.open(path)
-            # locate corresponding Move object in moves
-            move_key
+            try:
+                # locate corrisponding move
+                current_move = move_key[path.stem]
+            except KeyError:
+                # texture file is either misnamed
+                # or does not belong in current gamemode.
+                # mark bad file invalid.
+                os.rename(path.name, "INVALID__" + str(path.name))
+            # assign img to move's texture attribute
+            move_index = moves.index(current_move)
+            moves[move_index].texture = img
         return moves
 
 
