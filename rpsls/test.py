@@ -1,10 +1,12 @@
-from tkinter import *
+import tkinter as tk
 
-root = Tk()
+def _lbl_init(master):
+    label = tk.Label(master, text="sup")
+    label["text"] = "hi"
+    return label
+    
 
-buttmunch = Frame()
-buttmunch.master = root
-label = Label(buttmunch, text="buttmunch")
-label.pack()
-buttmunch.pack()
+root = tk.Tk()
+label = _lbl_init(root).pack()
+print(label)
 root.mainloop()

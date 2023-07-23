@@ -17,14 +17,13 @@ Intended Structure:
 """
 
 
-from random import choices as randchoices
 import tkinter as tk
 from tkinter import ttk
+from random import choices as rand_choices
 from PIL import ImageTk, Image
 from pathlib import Path
-import json
-from dataclasses import dataclass, field
-import os
+from json import load as json_load
+from os import rename
 
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
@@ -136,7 +135,7 @@ class Rps:
                 # texture file is either misnamed
                 # or does not belong in current gamemode.
                 # mark bad file invalid.
-                os.rename(path.name, "INVALID__" + str(path.name))
+                rename(path.name, "INVALID__" + str(path.name))
             # assign img to move's texture attribute
             move_index = moves.index(current_move)
             moves[move_index].texture = img
@@ -169,7 +168,7 @@ class Rps:
             #   correspond to lower weights.
             confidence.append(1 / i**2)
         # randomly choose, weighted by squared confidence values.
-        return randchoices(self.moves, weights=confidence, k=1)[0]
+        return rand.choices(self.moves, weights=confidence, k=1)[0]
 
     def _get_victor(self, player_move: Move, com_move: Move) -> str:
         """Determines round victor based on player and com moves."""
@@ -225,22 +224,45 @@ class App(tk.Frame):
         self._configure_frame()
         self._make_display()
         self._make_move_picker()
-        # TODO write these functions!
 
     def _configure_frame(self) -> None:
         """Configures and packs self to root"""
-        # TODO write _configure_frame
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=0, minsize=60)
+        self.pack(fill="both", expand=True)
 
-    def _make_display():
-        # TODO write _make_display
-        pass
+    def _make_display(self) -> None:
+        """Assembles frame containing widgets for displaying game info"""
+        frm_display = self._make_frm_display()
+
+    def _make_frm_display(self) -> ttk.Frame:
+        """Initializes and configures display frame"""
+        frm_display = ttk.Frame(self)
+        frm_display.columnconfigure((0, 1, 2), weight=1, pad=5, minsize=260)
+        frm_display.rowconfigure(0, weight=0, minsize=40, pad=5)
+        frm_display.rowconfigure(1, weight=1, minsize=260)
+        frm_display.grid(
+            column=0,
+            row=0,
+            sticky="nsew",
+        )
+        return frm_display
+
+    def _make_scoreboard(self, master: tk.Frame) -> None:
+        """Initializes and configures scoreboard"""
+        # TODO write _make_scoreboard
+        # Note: gonna have to fiddle with tkvars, probs edit Rps.run_game to
+        # return values for updating display elements
+        # move picker button command will link to App function that
+        # calls Rps.run_game and updates the display
 
     def _make_move_picker():
         # TODO write _make_move_picker
         pass
 
 
-def make_root(default_gamemode: str) -> None:
+def _make_root(default_gamemode: str) -> None:
     """Instantiates and configures root window with menu bar."""
     global root
     root = tk.Tk()
@@ -287,7 +309,7 @@ def configure_root_window(gamemode) -> None:
     root.wm_iconphoto(True, icon)
 
 
-def start_game(gamemode: str) -> None:
+def _start_game(gamemode: str) -> None:
     """Instantiates Rps engine and App frame with given gamemode."""
     rps = Rps(gamemode)
     app = App(root, rps)
@@ -318,8 +340,8 @@ def main():
         move_config, move_config["default_gamemode"]
     )
     print(default_gamemode)
-    make_root(default_gamemode)
-    start_game(default_gamemode)
+    _make_root(default_gamemode)
+    _start_game(default_gamemode)
     root.mainloop()
 
 
