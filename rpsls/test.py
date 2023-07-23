@@ -1,6 +1,10 @@
-mylist = [14, 17, 15]
+from tkinter import *
 
-mylist[mylist.index(17)] = 21
+root = Tk()
 
-
-print(mylist)
+buttmunch = Frame()
+buttmunch.master = root
+label = Label(buttmunch, text="buttmunch")
+label.pack()
+buttmunch.pack()
+root.mainloop()
