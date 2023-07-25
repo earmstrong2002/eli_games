@@ -168,7 +168,7 @@ class Rps:
             #   correspond to lower weights.
             confidence.append(1 / i**2)
         # randomly choose, weighted by squared confidence values.
-        return rand.choices(self.moves, weights=confidence, k=1)[0]
+        return rand_choices(self.moves, weights=confidence, k=1)[0]
 
     def _get_victor(self, player_move: Move, com_move: Move) -> str:
         """Determines round victor based on player and com moves."""
@@ -235,6 +235,7 @@ class App(tk.Frame):
     def _make_display(self) -> None:
         """Assembles frame containing widgets for displaying game info"""
         frm_display = self._make_frm_display()
+        self._make_scoreboard(frm_display)
 
     def _make_frm_display(self) -> ttk.Frame:
         """Initializes and configures display frame"""
@@ -325,7 +326,7 @@ def change_gamemode(gamemode: str) -> None:
 def _get_move_config() -> dict:
     """Reads move_config.json and returns dict with the info"""
     with open(HERE / "move_config.json") as cfg:
-        return json.load(cfg)
+        return json_load(cfg)
 
 
 def _get_gamemode(move_config: dict, gamemode: str) -> dict:
