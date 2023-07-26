@@ -10,7 +10,6 @@ from math import sqrt
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
 
-
 class Move:
     """
     Stores info relavent to Rps operations.
@@ -473,8 +472,8 @@ def _get_move_config() -> dict:
     """Reads move_config.json and returns dict with the info"""
     with open(HERE / "move_config.json") as cfg:
         return json_load(cfg)
-
-
+      
+      
 def _get_gamemode(gamemode: str) -> dict:
     """Separates gamemode info from greater move_config dict."""
     return move_config["gamemodes"][gamemode]
