@@ -8,7 +8,7 @@ Intended Structure:
         - instantiates global App, which inherits from Rps and makes frame
             slaved to root
     - initiates root.mainloop()
-    
+
 - change_gamemode
     - accepts target_gamemode,
     - kills existing Rps and App
@@ -24,6 +24,7 @@ from PIL import ImageTk, Image
 from pathlib import Path
 from json import load as json_load
 from os import rename
+from math import sqrt
 
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
@@ -240,8 +241,8 @@ class App(tk.Frame):
     def _configure_frame(self) -> None:
         """Configures and packs self to root"""
         self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=0, minsize=60)
+        self.rowconfigure(0, weight=5)
+        self.rowconfigure(1, weight=2, minsize=60)
         self.pack(fill="both", expand=True)
 
     def _make_display(self) -> None:
@@ -251,53 +252,127 @@ class App(tk.Frame):
         self._make_player_labels(master=frm_display)
         self._make_message_label(master=frm_display)
         self._make_graphics(master=frm_display)
-        frm_display.pack(fill="both", expand=True)
 
     def _make_frm_display(self) -> ttk.Frame:
         """Initializes and configures display frame"""
-        frm_display = ttk.Frame(self)
-        frm_display.columnconfigure((0, 1, 2), weight=1, pad=5, minsize=260)
-        frm_display.rowconfigure(0, weight=0, minsize=40, pad=5)
-        frm_display.rowconfigure(1, weight=1, minsize=260)
-        frm_display.grid(
-            column=0,
-            row=0,
-            sticky="nsew",
+        frm_display = ttk.Frame(
+            self,
         )
+        frm_display.columnconfigure((0, 1, 2), weight=1, minsize=250)
+        frm_display.rowconfigure(0, weight=0, minsize=40)
+        frm_display.rowconfigure(1, weight=1, minsize=250)
+        frm_display.grid(column=0, row=0, sticky="nsew")
         return frm_display
 
     def _make_scoreboard(self, master: tk.Frame) -> None:
         """Initializes and configures scoreboard"""
-        lbl_scoreboard = ttk.Label(master, textvariable=self.scoreboard)
+        lbl_scoreboard = ttk.Label(
+            master, textvariable=self.scoreboard, anchor="center"
+        )
         lbl_scoreboard.grid(column=1, row=0, sticky="nsew")
 
     def _make_player_labels(self, master) -> None:
         """Makes the "player" and "computer" labels"""
         # player label
-        lbl_player = ttk.Label(master, text="PLAYER")
+        lbl_player = ttk.Label(master, text="PLAYER", anchor="center")
         lbl_player.grid(column=0, row=0, sticky="nsew")
         # computer label
-        lbl_com = ttk.Label(master, text="COMPUTER")
+        lbl_com = ttk.Label(
+            master,
+            text="COMPUTER",
+            anchor="center",
+        )
         lbl_com.grid(column=2, row=0, sticky="nsew")
 
     def _make_message_label(self, master) -> None:
         """Makes the label that displays the outcome message"""
-        lbl_message = ttk.Label(master, textvariable=self.outcome_message)
+        lbl_message = ttk.Label(
+            master, textvariable=self.outcome_message, anchor="center"
+        )
         lbl_message.grid(column=1, row=1, sticky="nsew")
 
     def _make_graphics(self, master: ttk.Label) -> None:
         """Makes the labels for move textures"""
-        # TODO write _make_graphics
+        # player move image label
+        lbl_player_move = ttk.Label(master)
+        lbl_player_move.grid(column=0, row=1, sticky="nsew")
 
-    def _make_move_picker(self):
-        # TODO write _make_move_picker
-        pass
+        # com move image label
+        lbl_com_move = ttk.Label(master)
+        lbl_com_move.grid(column=2, row=1, sticky="nsew")
+
+    def _make_move_picker(self) -> None:
+        """
+        Dynamically makes move picker; button decoration, funcion, and layout
+        determined by number of moves in current gamemode
+        """
+        layout = self._get_btn_layout()
+        frm_buttons = self._make_frm_buttons(layout)
+        self._make_buttons(frm_buttons, layout)
+        print(frm_buttons.grid_slaves())
+
+    def _get_btn_layout(self) -> dict:
+        """Determines row length and count based on length of self.rps.move"""
+        count = len(self.rps.moves)
+        columns = int(sqrt(count)) + 1
+        rows = count // columns
+        if count % columns != 0:
+            rows += 1
+        return {"columns": columns, "rows": rows}
+
+    def _make_frm_buttons(self, layout: dict[str, int]) -> None:
+        """Instantiates and configures frame for move buttons"""
+        frm_buttons = ttk.Frame(self)
+        frm_buttons.rowconfigure(to_range(layout["rows"]), weight=1)
+        frm_buttons.columnconfigure(0, weight=1)
+        frm_buttons.grid(column=0, row=1, sticky="nsew")
+        return frm_buttons
+
+    def _make_buttons(self, master, layout) -> None:
+        """Dynamically creates ttk.Button objects based on self.rps.moves"""
+        # FIXME buttons appear bunched on left side
+        moves = self.rps.moves
+        move_index = 0
+        for row in range(layout["rows"]):
+            # configure sub-frame
+            frm_row = ttk.Frame(master, name=f"frm_row_{row}")
+            frm_row.columnconfigure(to_range(layout["rows"]), weight=1)
+            for column in range(layout["columns"]):
+                if move_index < len(moves):
+                    master.columnconfigure(column, weight=1)
+                    self._make_button(
+                        master=frm_row,
+                        move=moves[move_index],
+                        column=column,
+                        row=row,
+                    )
+                else:
+                    break
+                move_index += 1
+            frm_row.grid(column=0, row=row, sticky="nsew")
+
+    def _make_button(self, master, move, column, row) -> None:
+        btn_move = ttk.Button(
+            master,
+            name=f"btn_{move.title}",
+            text=f"{move.title.upper()}",
+            command=lambda: self._handle_move_button(move),
+        )
+        btn_move.grid(column=column, row=row, sticky="nsew")
+
+    def _handle_move_button(self, move):
+        """Runs game of rps and updates display accordingly"""
+        # TODO write _handle_move_button
+        print(move.title)
 
 
 def _make_root(default_gamemode: str) -> None:
     """Instantiates and configures root window with menu bar."""
     global root
     root = tk.Tk()
+    root.minsize(750, 400)
+    root.style = ttk.Style()
+    root.style.theme_use("clam")
 
     configure_root_window(default_gamemode)
     make_menu_bar(move_config["gamemodes"])
@@ -332,7 +407,6 @@ def make_mnu_gamemodes(master, gamemodes: list) -> tk.Menu:
 
 def configure_root_window(gamemode) -> None:
     """Configures geometry, title, and icon of root window."""
-    root.geometry("640x480")
     active_gamemode_alias = gamemode["alias"]
     root.title(f"Play {active_gamemode_alias}")
     with Image.open(HERE / "icon.png") as open_img:
@@ -345,6 +419,13 @@ def _start_game(gamemode: str) -> None:
     """Instantiates Rps engine and App frame with given gamemode."""
     rps = Rps(gamemode)
     app = App(root, rps)
+
+
+def to_range(num: int) -> tuple:
+    range_list = []
+    for i in range(num):
+        range_list.append(i)
+    return tuple(range_list)
 
 
 def change_gamemode(gamemode: str) -> None:
@@ -371,7 +452,6 @@ def main():
     default_gamemode = _get_gamemode(
         move_config, move_config["default_gamemode"]
     )
-    print(default_gamemode)
     _make_root(default_gamemode)
     _start_game(default_gamemode)
     root.mainloop()
