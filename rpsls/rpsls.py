@@ -1,22 +1,3 @@
-"""
-Intended Structure:
-- main
-    - loads move_config.json
-    - calls helper function to create root window with gamemodes
-    - calls start_game with default gamemode
-        - calls helper function to instantiate global Rps with default gamemode
-        - instantiates global App, which inherits from Rps and makes frame
-            slaved to root
-    - initiates root.mainloop()
-
-- change_gamemode
-    - accepts target_gamemode,
-    - kills existing Rps and App
-    - calls configure_root_window with target_gamemode
-    - calls start_game with target_gamemode
-"""
-
-
 import tkinter as tk
 from tkinter import ttk
 from random import choices as rand_choices
