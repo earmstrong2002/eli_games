@@ -52,6 +52,9 @@ class Move:
         self.beats = beats
         self.texture = texture
 
+    def __repr__(self):
+        return self.title
+
 
 class Rps:
     """A class that serves as a game engine

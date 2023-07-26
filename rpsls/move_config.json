@@ -1,5 +1,5 @@
 {
-    "default_gamemode": "rps_15",
+    "default_gamemode": "rpsls",
     "gamemodes": {
         "rps": {
             "title": "rps",
