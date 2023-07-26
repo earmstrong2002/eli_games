@@ -168,7 +168,7 @@ class Rps:
             #   correspond to lower weights.
             confidence.append(1 / i**2)
         # randomly choose, weighted by squared confidence values.
-        return rand.choices(self.moves, weights=confidence, k=1)[0]
+        return rand_choices(self.moves, weights=confidence, k=1)[0]
 
     def _get_victor(self, player_move: Move, com_move: Move) -> str:
         """Determines round victor based on player and com moves."""
@@ -217,7 +217,19 @@ class App(tk.Frame):
         super().__init__()
         self.master = master
         self.rps = rps
+        self._vars_init()
         self._make_widgets()
+
+    def _vars_init(self) -> None:
+        """Initializes tk variables"""
+        # scoreboard StringVar
+        wins = self.rps.wins
+        self.scoreboard = tk.StringVar(
+            value="{} -- {} -- {}".format(
+                wins["player"], wins["draw"], wins["com"]
+            )
+        )
+        self.outcome_message = tk.StringVar(value="fart")
 
     def _make_widgets(self) -> None:
         """Generates all widgets"""
@@ -235,6 +247,11 @@ class App(tk.Frame):
     def _make_display(self) -> None:
         """Assembles frame containing widgets for displaying game info"""
         frm_display = self._make_frm_display()
+        self._make_scoreboard(master=frm_display)
+        self._make_player_labels(master=frm_display)
+        self._make_message_label(master=frm_display)
+        self._make_graphics(master=frm_display)
+        frm_display.pack(fill="both", expand=True)
 
     def _make_frm_display(self) -> ttk.Frame:
         """Initializes and configures display frame"""
@@ -251,13 +268,28 @@ class App(tk.Frame):
 
     def _make_scoreboard(self, master: tk.Frame) -> None:
         """Initializes and configures scoreboard"""
-        # TODO write _make_scoreboard
-        # Note: gonna have to fiddle with tkvars, probs edit Rps.run_game to
-        # return values for updating display elements
-        # move picker button command will link to App function that
-        # calls Rps.run_game and updates the display
+        lbl_scoreboard = ttk.Label(master, textvariable=self.scoreboard)
+        lbl_scoreboard.grid(column=1, row=0, sticky="nsew")
 
-    def _make_move_picker():
+    def _make_player_labels(self, master) -> None:
+        """Makes the "player" and "computer" labels"""
+        # player label
+        lbl_player = ttk.Label(master, text="PLAYER")
+        lbl_player.grid(column=0, row=0, sticky="nsew")
+        # computer label
+        lbl_com = ttk.Label(master, text="COMPUTER")
+        lbl_com.grid(column=2, row=0, sticky="nsew")
+
+    def _make_message_label(self, master) -> None:
+        """Makes the label that displays the outcome message"""
+        lbl_message = ttk.Label(master, textvariable=self.outcome_message)
+        lbl_message.grid(column=1, row=1, sticky="nsew")
+
+    def _make_graphics(self, master: ttk.Label) -> None:
+        """Makes the labels for move textures"""
+        # TODO write _make_graphics
+
+    def _make_move_picker(self):
         # TODO write _make_move_picker
         pass
 
@@ -325,7 +357,7 @@ def change_gamemode(gamemode: str) -> None:
 def _get_move_config() -> dict:
     """Reads move_config.json and returns dict with the info"""
     with open(HERE / "move_config.json") as cfg:
-        return json.load(cfg)
+        return json_load(cfg)
 
 
 def _get_gamemode(move_config: dict, gamemode: str) -> dict:

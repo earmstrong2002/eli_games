@@ -1,12 +1,7 @@
 import tkinter as tk
 
-def _lbl_init(master):
-    label = tk.Label(master, text="sup")
-    label["text"] = "hi"
-    return label
-    
+mylist = ["fart", "cum", 8.76, 8]
 
-root = tk.Tk()
-label = _lbl_init(root).pack()
-print(label)
-root.mainloop()
+with mylist as k:
+    for i in k:
+        print(i)
