@@ -17,7 +17,7 @@
             }
         },
         "rpsls": {
-            "title": "rps",
+            "title": "rpsls",
             "alias": "Rock, Paper, Scissors, Lizard, Spock",
             "moves": {
                 "rock": {
@@ -43,7 +43,7 @@
             }
         },
         "rps_15": {
-            "title": "rps",
+            "title": "rps_15",
             "alias": "RPS-15",
             "moves": {
                 "rock": {
