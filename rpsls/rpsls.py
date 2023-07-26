@@ -1,227 +1,391 @@
-import random as rand
+"""
+Intended Structure:
+- main
+    - loads move_config.json
+    - calls helper function to create root window with gamemodes
+    - calls start_game with default gamemode
+        - calls helper function to instantiate global Rps with default gamemode
+        - instantiates global App, which inherits from Rps and makes frame
+            slaved to root
+    - initiates root.mainloop()
+
+- change_gamemode
+    - accepts target_gamemode,
+    - kills existing Rps and App
+    - calls configure_root_window with target_gamemode
+    - calls start_game with target_gamemode
+"""
+
+
 import tkinter as tk
 from tkinter import ttk
+from random import choices as rand_choices
 from PIL import ImageTk, Image
 from pathlib import Path
-import json
+from json import load as json_load
+from os import rename
+from math import sqrt
+
+
+HERE = Path(__file__).parent.absolute()  # absolute path of current file
 
 
 class Move:
-    def __init__(self, title, beats=None, texture=None):
-        self.beats = beats
+    """
+    Stores info relavent to Rps operations.
+    - title stores move's name as str
+    - beats stores dict[Move: str];
+        - keys are moves that are beaten by self
+        - values are the action that makes self beat the key
+        - e.g. rock.beats == {scissors, "crushes"}  # rock crushes scissors
+    - texture stores Image object with associated texture
+        - note: move textures are to be stored with the following format:
+        - directory: textures/relaventgamemode/
+        - file name: movetitle.png
+        - size: 250x250
+    """
+
+    def __init__(
+        self, title: str, beats: dict | None = {}, texture=None
+    ) -> None:
         self.title = title
+        self.beats = beats
         self.texture = texture
 
-    def __str__(self):
+    def __repr__(self):
         return self.title
 
 
-# instantiates Move objects
-def initialize_moves() -> None:
-    """Instantiates all attributes of all moves from move_config.json"""
+class Rps:
+    """A class that serves as a game engine
+    for variants of rock, paper, scissors."""
 
-    # read move properties form move_config.json
-    with open("rpsls/move_config.json", "r") as cfg:
-        global MOVE_CONFIG
-        MOVE_CONFIG = json.load(cfg)
-        gamemode = "rpsls"
-        move_dict = MOVE_CONFIG[gamemode]["moves"]
+    def __init__(self, gamemode: dict):
+        self.gamemode = gamemode["title"]
+        self.alias = gamemode["alias"]
+        self.moves = self._initialize_moves(gamemode["moves"])
+        self.wins = {"player": 0, "draw": 0, "com": 0}
+        self.com_confidence = self._initialize_com_confidence()
 
-    global MOVES  # list of Move objects for global access
-    MOVES = instantiate_moves(list(move_dict.keys()))
-    move_key = build_move_key(MOVES)
+    def __repr__(self):
+        return self.gamemode
 
-    # populate move.beats attributes
-    for move in MOVES:
-        move.beats = generate_beats_dict(move, move_dict[move.title], move_key)
+    def _initialize_com_confidence(self) -> dict[Move, int]:
+        """Creates com_confidence dict. All values are initialized to 1."""
+        com_confidence = {}
+        for move in self.moves:
+            com_confidence[move] = 1
+        return com_confidence
 
-    # populate move.texture attributes
-    if MOVE_CONFIG[gamemode]["has_textures"] == True:
-        textures = fetch_textures(move_key, gamemode)
-        for move in MOVES:
-            move.texture = textures[move]
+    def _initialize_moves(self, move_dict: dict) -> list[Move]:
+        """Creates and configures Move object for each move in move_list"""
+        moves = self._instantiate_moves(move_dict)
+        move_key = self._build_move_key(moves)
+        # Populate Move object attributes
+        moves = self._populate_beats(moves, move_key, move_dict)
+        moves = self._populate_textures(moves, move_key)
+        return moves
 
+    def _instantiate_moves(self, move_list: dict) -> list[Move]:
+        """
+        Instantiates Move object for each move in move_list.
+        Move objects are "naked" because they have only title. No other data.
+        """
+        naked_moves = []
+        for move in move_list:
+            exec(f"{move} = Move(title='{move}')")
+            exec(f"naked_moves.append({move})")
+        return naked_moves
 
-def fetch_textures(move_key: dict, gamemode: str) -> dict:
-    """Searches dir for textures for all moves,
-    creates Image object of each texture,
-    returns dict; keys are Move objects, values are Image objects.
-    """
-    pths_textures = list(Path(f"rpsls/textures/{gamemode}").glob("*.png"))
-    textures = {}
-    for path in pths_textures:
-        # generate Image object with path
-        img = Image.open(path)
-        # add corresponding move object to textures with Image object as value
-        textures[move_key[path.stem]] = img
+    def _build_move_key(self, moves: list[Move]) -> dict[str, Move]:
+        """Returns dict for locating Move object with given title"""
+        move_key = {}
+        for move in moves:
+            move_key[move.title] = move
+        return move_key
 
-    return textures
+    def _populate_beats(
+        self, moves: list[Move], move_key: dict[str, Move], move_dict: dict
+    ) -> dict[str, Move]:
+        """Assigns beats attribute to all moves in move_key."""
+        for move in moves:
+            beats = {}
+            # locate relevant data in move_dict
+            unformatted_beats = move_dict[move.title]
+            for key in unformatted_beats:
+                # locate Move corresponding Move object
+                move_object = move_key[key]
+                # add Move object and verb to beats
+                beats[move_object] = unformatted_beats[key]
+            move.beats = beats
+        return moves
 
-
-def generate_beats_dict(
-    move: Move, str_dict_beats: dict, move_key: dict
-) -> dict:
-    """str_dict keys are move titles as str.
-    This function replaces the str with appropriate move object"""
-    beats = {}
-    for item in str_dict_beats.items():
-        obj = move_key[item[0]]
-        beats[obj] = item[1]
-
-    return beats
-
-
-def build_move_key(moves: list) -> dict:
-    """Returns dict; keys are move titles as str, values are Move objects."""
-    move_key = {}
-    for move in moves:
-        move_key[move.title] = move
-
-    return move_key
-
-
-def instantiate_moves(move_strs: list) -> list:
-    """Returns list of move objects for all moves in move_strs"""
-    moves = []
-    for move in move_strs:
-        exec(f"{move} = Move(title='{move}')")
-        exec(f"moves.append({move})")
-
-    return moves
-
-
-class App(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        # set icon image
-        with Image.open("rpsls/icon.png") as icon:
-            icon.resize((16, 16))
-            photo = ImageTk.PhotoImage(icon)
-            self.wm_iconphoto(True, photo)
-
-        self.title("Play R.P.S.L.S.")
-        self.resizable(0, 0)  # not resizeable, for simplicity
-        self.make_widgets()
-
-    def make_widgets(self) -> None:
-        """Defines and places all widgets"""
-        # make menu bar
-        self.make_menubar()
-        self.config(menu=self.menubar)
-        # configure primary frame
-        self.frm_main = ttk.Frame(self)
-        self.frm_main.columnconfigure(0, weight=1)
-        self.frm_main.rowconfigure(0, weight=1)
-        self.frm_main.rowconfigure(1, weight=0, minsize=60)
-        self.frm_main.pack(fill="both", expand=True)
-        # populate with elements
-        self.make_display()
-        self.make_move_picker()
-
-    def make_menubar(self):
-        self.menubar = tk.Menu(self)
-        self.mnu_gamemode = tk.Menu(self.menubar, tearoff=0)
-        self.mnu_gamemode_select = tk.Menu(self.mnu_gamemode, tearoff=0)
-        for gamemode in MOVE_CONFIG.items():
-            gm_alias = gamemode[1]["alias"]
-            exec(
-                f"self.mnu_gamemode_select.add_command(label='{gm_alias}', command=lambda: print('{gm_alias}'))"
-            )
-            # TODO create command for switching gamemodes
-            # you'll have to refactor the code such that class Rps
-            # is instantiated within App and
-            # gamemode var is passed into the constructor
-            # and initialize_moves should be called from Rps
-        self.mnu_gamemode.add_cascade(
-            label="Select gamemode", menu=self.mnu_gamemode_select
+    def _populate_textures(
+        self, moves: list[Move], move_key: dict[str, Move]
+    ) -> dict[str, Move]:
+        """
+        Assigns texture attribute to Move objects.
+        Note: All textures present in gamemode's texture folder
+        will be processed, not necessarily every move
+        in the gamemode.
+        """
+        pths_textures = list(
+            Path(HERE / "textures" / self.gamemode).glob("*.png")
         )
-        self.mnu_gamemode.add_command(label="Create custom gamemode")
-        self.menubar.add_cascade(label="Gamemode", menu=self.mnu_gamemode)
+        for path in pths_textures:
+            # instantiate Image object with path
+            img = Image.open(path)
+            try:
+                # locate corrisponding move
+                current_move = move_key[path.stem]
+            except KeyError:
+                # texture file is either misnamed
+                # or does not belong in current gamemode.
+                # mark bad file invalid.
+                rename(path.name, "INVALID__" + str(path.name))
+            # assign img to move's texture attribute
+            move_index = moves.index(current_move)
+            moves[move_index].texture = img
+        return moves
 
-    def make_display(self) -> None:
-        """Defines and places all widgets concerning the display"""
-        # configure frame for display
-        self.frm_display = ttk.Frame(self.frm_main)
-        self.frm_display.columnconfigure(
-            (0, 1, 2), weight=1, pad=5, minsize=260
+    def run_game(self, player_move: Move) -> None:
+        """Controls the flow of game."""
+        print("player_move.beats: " + str(player_move.beats))
+        com_move = self._com_decide()
+        print("com_move.beats: " + str(com_move.beats))
+        victor = self._get_victor(player_move, com_move)
+        print("victor: " + victor)
+        outcome_message = self._get_outcome_message(
+            player_move, com_move, victor
         )
-        self.frm_display.rowconfigure(0, weight=0, minsize=40, pad=5)
-        self.frm_display.rowconfigure(1, weight=1, minsize=260)
-        self.frm_display.grid(
-            column=0,
-            row=0,
-            sticky="nsew",
-        )
+        # update self.wins and self.com_confidence
+        self._scorekeeping(player_move, victor)
+        return com_move, outcome_message
 
-        # scoreboard
-        self.scoreboard = tk.StringVar(
-            value=f"{rps.player_wins} -- {rps.draws} -- {rps.com_wins}"
-        )
-        self.lbl_scoreboard = ttk.Label(
-            self.frm_display, textvariable=self.scoreboard, anchor="center"
-        )
-        self.lbl_scoreboard.grid(column=1, row=0)
+    def _com_decide(self) -> Move:
+        """
+        Chooses computer's move.
+        self.com_confidence stores Moves as keys and their values
+        represent the number of times the player has played moves
+        that beat the key move, initialized at 1 instead of 0
+        to avoid division by 0. If the player favors some moves over
+        other moves, the computer will pick up on that
+        and punish them for it.
+        """
+        confidence = []  # storage for frobbed self.com_confidence values
+        for i in self.com_confidence.values():
+            # square values to emphasize disparity between high and low values.
+            # take the reciprocal so that higher self.com_confidence values
+            #   correspond to lower weights.
+            confidence.append(1 / i**2)
+        # randomly choose, weighted by squared confidence values.
+        print("self.moves: " + str(self.moves))
+        return rand_choices(self.moves, weights=confidence, k=1)[0]
 
-        # player label
-        self.lbl_player = ttk.Label(self.frm_display, text="Player")
-        self.lbl_player.grid(column=0, row=0, sticky="e")
+    def _get_victor(self, player_move: Move, com_move: Move) -> str:
+        """Determines round victor based on player and com moves."""
+        if com_move is player_move:
+            return "draw"
+        if com_move in player_move.beats:
+            return "player"
+        else:  # computer wins
+            return "com"
 
-        # computer label
-        self.lbl_com = ttk.Label(self.frm_display, text="Computer")
-        self.lbl_com.grid(column=2, row=0, sticky="w")
-
-        # outcome message
-        self.outcome_message = tk.StringVar()
-        self.lbl_outcome = ttk.Label(
-            self.frm_display,
-            textvariable=self.outcome_message,
-            anchor="center",
-            width=43,
-        )
-        self.lbl_outcome.grid(column=1, row=1, sticky="nsew")
-        self.make_graphics()
-
-    # Display appropriate images for player and com moves
-    def make_graphics(self):
-        """Defines and places all widgets concerning image graphics"""
-        # label for player move
-        self.lbl_player_move = ttk.Label(self.frm_display)
-        self.lbl_player_move.grid(column=0, row=1)
-
-        # label for com move
-        self.lbl_com_move = ttk.Label(self.frm_display)
-        self.lbl_com_move.grid(column=2, row=1)
-
-    def update_display(
-        self, player_wins, draws, com_wins, victor, player_move, com_move, verb
-    ) -> None:
-        """Update all variable elements of the GUI"""
-        self.update_scoreboard(player_wins, draws, com_wins)
-        self.outcome_message.set(
-            self.message(victor, player_move, com_move, verb)
-        )
-        self.display_move_textures(player_move, com_move)
-
-    def update_scoreboard(self, player_wins, draws, com_wins):
-        self.scoreboard.set(f"{player_wins} -- {draws} -- {com_wins}")
-
-    def message(self, victor, player_move, com_move, verb) -> None:
-        """Sets self.outcome_message depending on how the round played out"""
-        message = ""
+    def _get_outcome_message(
+        self, player_move: Move, com_move: Move, victor
+    ) -> str:
+        """Generates outcome message e.g. "Scissors cuts Paper" """
+        # determine which Move won
         match victor:
-            case "draw":
-                message = "It's a draw!"
+            case "draw":  # no need to generate message, return early.
+                return "It's a draw!"
             case "player":
-                message = f"Player wins! {player_move.title.capitalize()} "
-                message += f"{verb} {com_move.title.capitalize()}"
-            case "com":
-                message = f"Computer wins! {com_move.title.capitalize()} "
-                message += f"{verb} {player_move.title.capitalize()}"
-            case _:  # something is terribly wrong
-                raise ValueError()
-        return message
+                winner = player_move
+                loser = com_move
+            case _:  # com_move won
+                winner = com_move
+                loser = player_move
+        # determine verb to be used in message
+        verb = winner.beats[loser]
+        # format and return message
+        return "{} wins! {} {} {}.".format(
+            victor.capitalize(), winner.title.capitalize(), verb, loser.title
+        )
 
-    def display_move_textures(self, player_move, com_move) -> None:
+    def _scorekeeping(self, player_move: Move, victor: str) -> None:
+        """Updates self.wins and self.com_confidence with round outcome"""
+        # increment self.wins
+        self.wins[victor] += 1
+        # increment self.com_confidence
+        for move in player_move.beats.keys():
+            self.com_confidence[move] += 1
+
+
+class App(tk.Frame):
+    """App dynamically generates a GUI based on the gamemode information
+    stored in the Rps engine passed App's initializer."""
+
+    def __init__(self, master) -> None:
+        super().__init__()
+        self.master = master
+        self._vars_init()
+        self._make_widgets()
+
+    def _vars_init(self) -> None:
+        """Initializes tk variables"""
+        # scoreboard StringVar
+        wins = rps.wins
+        self.scoreboard = tk.StringVar(
+            value="{} -- {} -- {}".format(
+                wins["player"], wins["draw"], wins["com"]
+            )
+        )
+        self.outcome_message = tk.StringVar(value="fart")
+
+    def _make_widgets(self) -> None:
+        """Generates all widgets"""
+        self._configure_frame()
+        self._make_display()
+        self._make_move_picker()
+
+    def _configure_frame(self) -> None:
+        """Configures and packs self to root"""
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=5)
+        self.rowconfigure(1, weight=2, minsize=60)
+        self.pack(fill="both", expand=True)
+
+    def _make_display(self) -> None:
+        """Assembles frame containing widgets for displaying game info"""
+        frm_display = self._make_frm_display()
+        self._make_scoreboard(master=frm_display)
+        self._make_player_labels(master=frm_display)
+        self._make_message_label(master=frm_display)
+        self._make_graphics(master=frm_display)
+
+    def _make_frm_display(self) -> ttk.Frame:
+        """Initializes and configures display frame"""
+        frm_display = ttk.Frame(
+            self,
+        )
+        frm_display.columnconfigure((0, 1, 2), weight=1, minsize=250)
+        frm_display.rowconfigure(0, weight=0, minsize=40)
+        frm_display.rowconfigure(1, weight=1, minsize=250)
+        frm_display.grid(column=0, row=0, sticky="nsew")
+        return frm_display
+
+    def _make_scoreboard(self, master: tk.Frame) -> None:
+        """Initializes and configures scoreboard"""
+        lbl_scoreboard = ttk.Label(
+            master, textvariable=self.scoreboard, anchor="center"
+        )
+        lbl_scoreboard.grid(column=1, row=0, sticky="nsew")
+
+    def _make_player_labels(self, master) -> None:
+        """Makes the "player" and "computer" labels"""
+        # player label
+        lbl_player = ttk.Label(master, text="PLAYER", anchor="center")
+        lbl_player.grid(column=0, row=0, sticky="nsew")
+        # computer label
+        lbl_com = ttk.Label(
+            master,
+            text="COMPUTER",
+            anchor="center",
+        )
+        lbl_com.grid(column=2, row=0, sticky="nsew")
+
+    def _make_message_label(self, master) -> None:
+        """Makes the label that displays the outcome message"""
+        lbl_message = ttk.Label(
+            master, textvariable=self.outcome_message, anchor="center"
+        )
+        lbl_message.grid(column=1, row=1, sticky="nsew")
+
+    def _make_graphics(self, master: ttk.Label) -> None:
+        """Makes the labels for move textures"""
+        # player move image label
+        self.lbl_player_move = ttk.Label(master)
+        self.lbl_player_move.grid(column=0, row=1, sticky="nsew")
+
+        # com move image label
+        self.lbl_com_move = ttk.Label(master)
+        self.lbl_com_move.grid(column=2, row=1, sticky="nsew")
+
+    def _make_move_picker(self) -> None:
+        """
+        Dynamically makes move picker; button decoration, funcion, and layout
+        determined by number of moves in current gamemode
+        """
+        layout = self._get_btn_layout()
+        frm_buttons = self._make_frm_buttons(layout)
+        self._make_buttons(frm_buttons, layout)
+
+    def _get_btn_layout(self) -> dict:
+        """Determines row length and count based on length of rps.move"""
+        count = len(rps.moves)
+        columns = int(sqrt(count)) + 1
+        rows = count // columns
+        if count % columns != 0:
+            rows += 1
+        return {"columns": columns, "rows": rows}
+
+    def _make_frm_buttons(self, layout: dict[str, int]) -> None:
+        """Instantiates and configures frame for move buttons"""
+        frm_buttons = ttk.Frame(self)
+        frm_buttons.rowconfigure(to_range(layout["rows"]), weight=1)
+        frm_buttons.columnconfigure(0, weight=1)
+        frm_buttons.grid(column=0, row=1, sticky="nsew")
+        return frm_buttons
+
+    def _make_buttons(self, master, layout) -> None:
+        """Dynamically creates ttk.Button objects based on rps.moves"""
+        moves = rps.moves
+        move_index = 0
+        for row in range(layout["rows"]):
+            # configure sub-frame
+            frm_row = ttk.Frame(master, name=f"frm_row_{row}")
+            for column in range(layout["columns"]):
+                if move_index < len(moves):
+                    frm_row.columnconfigure(
+                        column,
+                        weight=1,
+                        minsize=750 // layout["columns"],
+                    )
+                    self._make_button(
+                        master=frm_row,
+                        move=moves[move_index],
+                        column=column,
+                        row=row,
+                    )
+                else:
+                    break
+                move_index += 1
+            frm_row.grid(column=0, row=row, sticky="nsew")
+
+    def _make_button(self, master, move, column, row) -> None:
+        """Creates button object with the given move, grids to given spot."""
+        btn_move = ttk.Button(
+            master,
+            name=f"btn_{move.title}",
+            text=f"{move.title.upper()}",
+            command=lambda: self._handle_move_button(move),
+        )
+        btn_move.grid(column=column, row=row, sticky="nsew")
+
+    def _handle_move_button(self, player_move):
+        """Runs game of rps and updates display accordingly"""
+        # run game and retrieve data
+        com_move, outcome_message = rps.run_game(player_move)
+
+        self._show_move_textures(player_move, com_move)
+        self.outcome_message.set(outcome_message)
+        self.scoreboard.set(
+            "{} -- {} -- {}".format(
+                rps.wins["player"], rps.wins["draw"], rps.wins["com"]
+            )
+        )
+
+    def _show_move_textures(self, player_move, com_move):
         """Draws appropriate textures onto lbl_player_move and lbl_com_move"""
         # set texture for player move
         try:
@@ -236,119 +400,113 @@ class App(tk.Tk):
         except KeyError:
             pass  # swallow error to allow gamemodes with no textures
 
-    def make_move_picker(self):
-        """Defines and draws all widgets concerning move selection"""
-        # configure frame for move picker
-        self.frm_move_picker = ttk.LabelFrame(
-            self.frm_main, text="Pick Your Move", labelanchor="n"
-        )
-        self.frm_move_picker.rowconfigure(0, weight=1, pad=5)
-        self.frm_move_picker.grid(column=0, row=1, sticky="nsew")
 
-        # populate move picker
-        for move in MOVES:
-            btn = f"btn_{move.title}"
-            index = MOVES.index(move)
-            self.frm_move_picker.columnconfigure(index, weight=1, pad=5)
-            exec(f"{btn} = ttk.Button(self.frm_move_picker)")
-            exec(f"{btn}['text'] = '{move.title.upper()}'")
-            exec(f"{btn}['command'] = lambda: rps.run_game(MOVES[{index}])")
-            exec(f"{btn}.grid(column = {index}, row=0, sticky='nsew')")
+def _make_root(default_gamemode: str) -> None:
+    """Instantiates and configures root window with menu bar."""
+    global root
+    root = tk.Tk()
+    root.minsize(750, 400)
+    root.style = ttk.Style()
+    root.style.theme_use("clam")
+
+    configure_root_window(default_gamemode)
+    make_menu_bar(move_config["gamemodes"])
 
 
-class Rps:
+def make_menu_bar(gamemodes: str) -> None:
+    """Creates menu bar slaved to root."""
+    menu_bar = tk.Menu(root)
+    mnu_options = tk.Menu(menu_bar, tearoff=0)
+    mnu_gamemodes = make_mnu_gamemodes(mnu_options, gamemodes)
+
+    mnu_options.add_cascade(label="Select Gamemode", menu=mnu_gamemodes)
+    menu_bar.add_cascade(label="Options", menu=mnu_options)
+    root.config(menu=menu_bar)
+
+
+def make_mnu_gamemodes(master, gamemodes: list) -> tk.Menu:
     """
-    A semi-modular class for playing rock-paper-scissors variants.
-    Future versions will be fully modular such that any simple variation of
-    rock-paper-scissors can be played with this module.
-    i.e. Any number of moves will be supported and configurable, from
-    ordinary rock-paper-scissors, to the legendary RPS-15
+    Creates tkinter menu for switching gamemodes.
+    The returned menu has one command per gamemode in gamemodes;
+    each command calls change_gammeode and passes it
+    the appropriate gamemode.
     """
-
-    def __init__(self):
-        self.player_wins = 0
-        self.draws = 0
-        self.com_wins = 0
-        self.com_confidence = {}  # used for deciding com move
-        for move in MOVES:
-            self.com_confidence[move] = 1
-
-    def com_decide(self, player_move) -> Move:
-        """
-        Picks computer's move for the given round.
-        self.com_confidence is a dict that for each possible move,
-        stores ints representing abstractly how likely the key
-        move is to win, if the player favors whatever moves
-        they've been favoring thusfar in the session.
-        More concretely, with each round, self.increment_scoreboard
-        increments the com_confidence value of each move in
-        player_move.beats by one.
-        com_decide squares the values in com_confidence to
-        accentuate the discrepancy between high and low values,
-        then uses the new list, confidence, as weights for the random choice.
-        """
-        confidence = []  # for storing squared confidence values
-        for i in self.com_confidence.values():
-            confidence.append(1 / i**2)
-        return rand.choices(MOVES, weights=confidence, k=1)[0]
-
-    def evaluate_victor(self, player_move, com_move):
-        """Compares player_move and com_move and determines who wins and what
-        verb to use in the outcome message"""
-        if com_move is player_move:
-            action = None
-            victor = "draw"
-        elif com_move in player_move.beats:
-            action = player_move.beats[com_move]
-            victor = "player"
-        else:  # computer wins
-            action = com_move.beats[player_move]
-            victor = "com"
-        return victor, action
-
-    def increment_scoreboard(self, victor, player_move) -> None:
-        """Increments values concerning scorekeeping"""
-        match victor:
-            case "player":
-                self.player_wins += 1
-            case "com":
-                self.com_wins += 1
-            case "draw":
-                self.draws += 1
-            case _:  # something has gone horribly wrong
-                raise ValueError()
-
-        for move in player_move.beats:
-            # increment confidence list with latest player move
-            self.com_confidence[move] += 1
-
-    def run_game(self, player_move):
-        """Controls flow of the program to execute a full round of rpsls"""
-        print(f"player_move = {player_move}")
-        com_move = self.com_decide(player_move)
-        print(f"com_move = {com_move}")
-        victor, verb = self.evaluate_victor(player_move, com_move)
-        print(f"victor = {victor}")
-        print(f"verb = {verb}")
-        self.increment_scoreboard(victor, player_move)
-        root.update_display(
-            self.player_wins,
-            self.draws,
-            self.com_wins,
-            victor,
-            player_move,
-            com_move,
-            verb,
+    mnu_gamemodes = tk.Menu(master, tearoff=0)
+    for gamemode in gamemodes.items():
+        # add command to switch to gamemode
+        command = "mnu_gamemodes.add_command(label='{}', command={})"
+        command = command.format(
+            gamemode[1]["alias"], f"lambda: change_gamemode('{gamemode[0]}')"
         )
+        print(command)
+        exec(command, globals(), locals())
+        # mnu_gamemodes.add_command(
+        #     label=gamemode[1]["alias"],
+        #     command=lambda: change_gamemode(gamemode[0]),
+        # )
+    return mnu_gamemodes
+
+
+def configure_root_window(gamemode) -> None:
+    """Configures geometry, title, and icon of root window."""
+    active_gamemode_alias = gamemode["alias"]
+    root.title(f"Play {active_gamemode_alias}")
+    with Image.open(HERE / "icon.png") as open_img:
+        open_img.resize((16, 16))
+        icon = ImageTk.PhotoImage(open_img)
+    root.wm_iconphoto(True, icon)
+
+
+def _start_game(gamemode: str) -> None:
+    """Instantiates Rps engine and App frame with given gamemode."""
+    global rps
+    global app
+    rps = Rps(gamemode)
+    app = App(root)
+
+
+def to_range(num: int) -> tuple:
+    range_list = []
+    for i in range(num):
+        range_list.append(i)
+    return tuple(range_list)
+
+
+def change_gamemode(gamemode: str) -> None:
+    """
+    Changes gamemode by destroying currently active instances of
+    Rps and App and reinstantiating them with the given gamemode.
+    """
+    global rps
+    global app
+    # destroy packed widgets
+    app.pack_forget()
+    # destroy class instances
+    del rps
+    del app
+    print(gamemode)
+    _start_game(_get_gamemode(gamemode))
+
+
+def _get_move_config() -> dict:
+    """Reads move_config.json and returns dict with the info"""
+    with open(HERE / "move_config.json") as cfg:
+        return json_load(cfg)
+
+
+def _get_gamemode(gamemode: str) -> dict:
+    """Separates gamemode info from greater move_config dict."""
+    return move_config["gamemodes"][gamemode]
 
 
 def main():
-    # TODO gamemode maker
-    initialize_moves()
-    global rps
-    global root
-    rps = Rps()
-    root = App()
+    # TODO add gamemode maker
+    # TODO add rules view
+    global move_config
+    move_config = _get_move_config()
+    default_gamemode = _get_gamemode(move_config["default_gamemode"])
+    _make_root(default_gamemode)
+    _start_game(default_gamemode)
     root.mainloop()
 
 
