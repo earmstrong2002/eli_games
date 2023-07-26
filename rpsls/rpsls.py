@@ -10,6 +10,7 @@ from math import sqrt
 
 HERE = Path(__file__).parent.absolute()  # absolute path of current file
 
+
 class Move:
     """
     Stores info relavent to Rps operations.
@@ -220,7 +221,7 @@ class App(tk.Frame):
                 wins["player"], wins["draw"], wins["com"]
             )
         )
-        self.outcome_message = tk.StringVar(value="fart")
+        self.outcome_message = tk.StringVar()
 
     def _make_widgets(self) -> None:
         """Generates all widgets"""
@@ -390,21 +391,21 @@ def _make_root(default_gamemode: str) -> None:
     root.style.theme_use("clam")
 
     configure_root_window(default_gamemode)
-    make_menu_bar(move_config["gamemodes"])
+    _make_menu_bar(MOVE_CONFIG["gamemodes"])
 
 
-def make_menu_bar(gamemodes: str) -> None:
+def _make_menu_bar(gamemodes: str) -> None:
     """Creates menu bar slaved to root."""
     menu_bar = tk.Menu(root)
     mnu_options = tk.Menu(menu_bar, tearoff=0)
-    mnu_gamemodes = make_mnu_gamemodes(mnu_options, gamemodes)
+    mnu_gamemodes = _make_mnu_gamemodes(mnu_options, gamemodes)
 
     mnu_options.add_cascade(label="Select Gamemode", menu=mnu_gamemodes)
     menu_bar.add_cascade(label="Options", menu=mnu_options)
     root.config(menu=menu_bar)
 
 
-def make_mnu_gamemodes(master, gamemodes: list) -> tk.Menu:
+def _make_mnu_gamemodes(master, gamemodes: list) -> tk.Menu:
     """
     Creates tkinter menu for switching gamemodes.
     The returned menu has one command per gamemode in gamemodes;
@@ -470,21 +471,21 @@ def change_gamemode(gamemode: str) -> None:
 
 def _get_move_config() -> dict:
     """Reads move_config.json and returns dict with the info"""
+    global MOVE_CONFIG
     with open(HERE / "move_config.json") as cfg:
-        return json_load(cfg)
-      
-      
+        MOVE_CONFIG = json_load(cfg)
+
+
 def _get_gamemode(gamemode: str) -> dict:
-    """Separates gamemode info from greater move_config dict."""
-    return move_config["gamemodes"][gamemode]
+    """Separates gamemode info from greater MOVE_CONFIG dict."""
+    return MOVE_CONFIG["gamemodes"][gamemode]
 
 
 def main():
     # TODO add gamemode maker
     # TODO add rules view
-    global move_config
-    move_config = _get_move_config()
-    default_gamemode = _get_gamemode(move_config["default_gamemode"])
+    _get_move_config()
+    default_gamemode = _get_gamemode(MOVE_CONFIG["default_gamemode"])
     _make_root(default_gamemode)
     _start_game(default_gamemode)
     root.mainloop()
