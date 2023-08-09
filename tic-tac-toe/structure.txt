@@ -2,8 +2,6 @@ Outline:
     tic_tac_toe
         -class Player
             -just a datatype for X or O
-        -constant X (Player object)
-        -constant O (Player object)
         -class Board
             -stores board state as 2d list
             -contains play method for modifying board state
@@ -12,7 +10,11 @@ Outline:
             -Takes in Board object and Player object for working with
             -contains functions for playing AI moves on board for single-Player
     main
-        -controls flow, yknow
+        -constant X (Player object)
+        -constant O (Player object)
+        -pick gamemode
+        -initialize game
+        -game loop
 
 
 Road map:
