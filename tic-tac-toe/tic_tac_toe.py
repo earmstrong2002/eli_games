@@ -51,7 +51,14 @@ class Board:
         If anything else finds its way into the list, something has gone wrong.
     """
 
-    def __init__(self, state: list[list]) -> None:
+    def __init__(
+        self,
+        state=[
+            [None, None, None],
+            [None, None, None],
+            [None, None, None],
+        ],
+    ) -> None:
         """Initializes this Board object.
 
         Args:
@@ -63,5 +70,30 @@ class Board:
         """
         self.state = state
 
+    ############################################################################ Begin methods that modify this instance
+
+    def play(self, move: tuple[int, int], player: Player) -> None:
+        row, column = move
+        self.state[row][column] = player
+
     def clear(self):  # TODO
         ...
+
+    ############################################################################ Begin methods that do not modify this instance
+
+    def spot_list(self) -> list:
+        """Returns list of spot elements ordered top-to-bottom, left-to-right, like a book.
+
+        Returns:
+            list: One-dimensional list of elements on the board.
+        """
+        spot_list = []
+        for row in self.state:
+            for spot in row:
+                spot_list.append(spot)
+        return spot_list
+
+
+def print_board(board: Board) -> None:
+    # TODO print_board
+    ...
