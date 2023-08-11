@@ -1,27 +1,9 @@
-Outline:
-    tic_tac_toe
-        -class Player
-            -just a datatype for X or O
-        -class Board
-            -stores board state as 2d list
-            -contains play method for modifying board state
-            -contains methods for reading board state
-        -class Com
-            -Takes in Board object and Player object for working with
-            -contains functions for playing AI moves on board for single-Player
-    main
-        -constant X (Player object)
-        -constant O (Player object)
-        -pick gamemode
-        -initialize game
-        -game loop
-
-
 Road map:
 - Get Board and main up-and-running enough to play a game against a friend/self
 - Develop logic to prevent illegal actions
 - Develop logic to know when the game is over
 - (Optional): develop logic to determine when the outcome is known, even before last move played.
+- Update structure to enable computer to play
 - Implement Com that just plays random moves for now
 - Update main to allow player to choose to play against computer
 - (Big one) develop Com logic to be UNBEATABLE
