@@ -9,7 +9,7 @@ def evaluate() -> str:
     if is_full():
         return "draw"
 
-    return False
+    return None
 
 
 def find_winner():
@@ -18,7 +18,7 @@ def find_winner():
         if reg_winner:
             return reg_winner
 
-    return False
+    return None
 
 
 def registers() -> tuple:
@@ -66,7 +66,7 @@ def valid_moves():
     for i in range(len(board)):
         if board[i] == " ":
             valid_moves.append(i)
-            
+
     return valid_moves
 
 
