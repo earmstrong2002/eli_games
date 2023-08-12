@@ -12,4 +12,6 @@ reg_indices = (
     (0, 2, 4),
 )
 corner_indices = (0, 2, 6, 8)
-players = ("X", "O")
+X = "X"
+O = "O"
+players = (X, O)

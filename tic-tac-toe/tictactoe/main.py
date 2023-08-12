@@ -19,38 +19,37 @@ def single_player_game():
     coin_toss = randint(0, 1)
     player = players[coin_toss]
     computer = players[not coin_toss]
+    
+    if computer == X:
+        winner = com_turn(computer)
 
-    while True:
+    while winner is None:
         winner = player_turn(player)
         if winner is not None:
             break
 
         winner = com_turn(computer)
-        if winner is not None:
-            break
 
     draw_board()
 
 
 def two_player_game():
-    coin_toss = randint(0, 1)
-    player_1 = players[coin_toss]
-    player_2 = players[not coin_toss]
+    player_1 = X
+    player_2 = O
 
-    while True:
+    while winner is None:
         winner = player_turn(player_1)
         if winner is not None:
             break
 
         winner = player_turn(player_2)
-        if winner is not None:
-            break
 
     draw_board()
 
 
 def player_turn(player: str) -> str:
     draw_board()
+    print(f"{player} to move. (Enter move)")
 
     move = get.move(player)
     board[move] = player
@@ -60,6 +59,8 @@ def player_turn(player: str) -> str:
 
 def com_turn(player: str) -> str:
     draw_board()
+    print(f"{player} to move (Computer's move. Press enter.)")
+    input()
 
     move = com.move(player)
     board[move] = player

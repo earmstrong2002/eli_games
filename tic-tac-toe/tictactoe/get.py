@@ -3,7 +3,7 @@ from globals import *
 
 def move(player) -> int:
     while True:
-        read = input(f"{player} to move: ").casefold()
+        read = input(f"> ").casefold()
         if not is_valid_input(read):
             # TODO write better error messages for this
             print("Could not parse input.")
