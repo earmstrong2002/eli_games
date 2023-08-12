@@ -68,7 +68,13 @@ def com_turn(player: str) -> str:
 
 
 def draw_board():
-    print("{}{}{}\n{}{}{}\n{}{}{}".format(*board))
+    board_ascii = "  A B C\n"
+    board_ascii += "1 {}|{}|{}\n"
+    board_ascii += "  -+-+-\n"
+    board_ascii += "2 {}|{}|{}\n"
+    board_ascii += "  -+-+-\n"
+    board_ascii += "3 {}|{}|{}\n"
+    print(board_ascii.format(*board))
 
 
 if __name__ == "__main__":
