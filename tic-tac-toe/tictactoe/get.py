@@ -5,7 +5,6 @@ def move(player) -> int:
     while True:
         read = input(f"> ").casefold()
         if not is_valid_input(read):
-            # TODO write better error messages for this
             print("Could not parse input.")
             print("Please enter a letter/number pair (e.g. A3 or B1)")
             continue
@@ -31,8 +30,8 @@ def gamemode() -> str:
                 return "1p"
             case "2":
                 return "2p"
-            case _:
-                print("Invalid input. Please enter 1 or 2.")
+
+        print("Invalid input. Please enter 1 or 2.")
 
 
 def is_valid_input(input: str) -> bool:
