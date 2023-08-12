@@ -57,4 +57,4 @@ def parse_input(input: str) -> int:
 
 
 def is_valid_move(move: int) -> bool:
-    return board[move] == " "
+    return board[move] == blank

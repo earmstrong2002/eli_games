@@ -25,12 +25,7 @@ def single_player_game():
         if winner is not None:
             break
 
-        draw_board()
-
-        move = com.move()
-        board[move] = computer
-
-        winner = logic.evaluate()
+        winner = com_turn(computer)
         if winner is not None:
             break
 
@@ -38,14 +33,16 @@ def single_player_game():
 
 
 def two_player_game():
-    turn = 0
     coin_toss = randint(0, 1)
-    is_over = False
+    player_1 = players[coin_toss]
+    player_2 = players[not coin_toss]
 
     while True:
-        active_player = players[(turn + coin_toss) % 2]
-        turn += 1
-        winner = player_turn(active_player)
+        winner = player_turn(player_1)
+        if winner is not None:
+            break
+
+        winner = player_turn(player_2)
         if winner is not None:
             break
 
@@ -58,9 +55,16 @@ def player_turn(player: str) -> str:
     move = get.move(player)
     board[move] = player
 
-    winner = logic.evaluate()
+    return logic.evaluate()
 
-    return winner
+
+def com_turn(player: str) -> str:
+    draw_board()
+
+    move = com.move(player)
+    board[move] = player
+
+    return logic.evaluate()
 
 
 def draw_board():

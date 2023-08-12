@@ -25,7 +25,7 @@ def registers() -> tuple:
     return (*rows(), *columns(), *diagonals())
 
 
-def rows():
+def rows() -> tuple:
     rows = []
     for row_index in range(side_length):
         row = []
@@ -38,7 +38,7 @@ def rows():
     return tuple(rows)
 
 
-def columns():
+def columns() -> tuple:
     columns = []
     for column_index in range(side_length):
         column = []
@@ -51,7 +51,7 @@ def columns():
     return tuple(columns)
 
 
-def diagonals():
+def diagonals() -> tuple:
     nwse_diag = []
     nesw_diag = []
     for i in range(side_length):
@@ -61,10 +61,18 @@ def diagonals():
     return (tuple(nwse_diag), tuple(nesw_diag))
 
 
+def corners() -> tuple:
+    corners = []
+    for i in corner_indices:
+        corners.append(board[i])
+
+    return tuple(corners)
+
+
 def valid_moves():
     valid_moves = []
     for i in range(len(board)):
-        if board[i] == " ":
+        if board[i] == blank:
             valid_moves.append(i)
 
     return valid_moves
@@ -72,15 +80,15 @@ def valid_moves():
 
 def read_reg_winner(reg: tuple) -> str:
     first = reg[0]
-    if first == " ":
-        return False
+    if first == blank:
+        return None
 
     for spot in reg[1:]:
         if spot != first:
-            return False
+            return None
 
     return first
 
 
 def is_full() -> bool:
-    return " " not in board
+    return blank not in board
