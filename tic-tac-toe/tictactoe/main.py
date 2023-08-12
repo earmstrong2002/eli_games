@@ -7,6 +7,7 @@ from random import randint
 
 def main():
     gamemode = get.gamemode()
+    board = [blank] * side_length**2
 
     match gamemode:
         case "1p":
@@ -19,32 +20,36 @@ def single_player_game():
     coin_toss = randint(0, 1)
     player = players[coin_toss]
     computer = players[not coin_toss]
-    
-    if computer == X:
-        winner = com_turn(computer)
 
-    while winner is None:
+    if computer == X:
+        com_turn(computer)
+
+    while True:
         winner = player_turn(player)
         if winner is not None:
             break
 
         winner = com_turn(computer)
+        if winner is not None:
+            break
 
-    draw_board()
+    game_over(winner)
 
 
 def two_player_game():
     player_1 = X
     player_2 = O
 
-    while winner is None:
+    while True:
         winner = player_turn(player_1)
         if winner is not None:
             break
 
         winner = player_turn(player_2)
+        if winner is not None:
+            break
 
-    draw_board()
+    game_over(winner)
 
 
 def player_turn(player: str) -> str:
@@ -66,6 +71,20 @@ def com_turn(player: str) -> str:
     board[move] = player
 
     return logic.evaluate()
+
+
+def game_over(winner: str) -> None:
+    draw_board()
+    match winner:
+        case "draw":
+            print("Tie game! Well played.")
+        case "X":
+            print("Xtra Xtra, read all about it! X wins!")
+        case "O":
+            print("O my gosh, O wins!")
+            
+    if get.play_again():
+        main()
 
 
 def draw_board():

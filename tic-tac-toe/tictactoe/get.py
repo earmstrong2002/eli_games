@@ -58,3 +58,16 @@ def parse_input(input: str) -> int:
 
 def is_valid_move(move: int) -> bool:
     return board[move] == blank
+
+
+def play_again():
+    print("Play again?")
+    while True:
+        read = input("> ")
+        match read.casefold()[0]:
+            case "y":
+                return True
+            case "n":
+                return False
+
+        print("Please enter 'yes' or 'no'.")
