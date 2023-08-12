@@ -31,7 +31,7 @@ def move(player: str):
 
 def find_win(regs: tuple, player: str) -> int:
     for i in range(len(regs)):
-        if player in regs[i] and regs[i].count(blank) == 1:
+        if regs[i].count(player) == 2 and blank in regs[i]:
             return reg_indices[i][regs[i].index(blank)]
 
     return None
@@ -50,5 +50,5 @@ def find_threatening_moves(regs: tuple, player: str) -> int:
     for i in range(len(regs)):
         if player in regs[i] and regs[i].count(blank) == 2:
             threatening_moves.append(reg_indices[i][regs[i].index(blank)])
-            
+
     return tuple(threatening_moves)
