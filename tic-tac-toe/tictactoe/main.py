@@ -7,7 +7,6 @@ from random import randint
 
 def main():
     gamemode = get.gamemode()
-    board = [blank] * side_length**2
 
     match gamemode:
         case "1p":
@@ -82,9 +81,9 @@ def game_over(winner: str) -> None:
             print("Xtra Xtra, read all about it! X wins!")
         case "O":
             print("O my gosh, O wins!")
-            
+
     if get.play_again():
-        main()
+        reset()
 
 
 def draw_board():
@@ -95,6 +94,13 @@ def draw_board():
     board_ascii += "  -+-+-\n"
     board_ascii += "3 {}|{}|{}\n"
     print(board_ascii.format(*board))
+
+
+def reset():
+    for i in range(len(board)):
+        board[i] = blank
+
+    main()
 
 
 if __name__ == "__main__":
